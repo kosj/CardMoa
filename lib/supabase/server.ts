@@ -1,8 +1,11 @@
-import { createServerClient, type CookieOptionsWithName } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 export function createClient() {
   const cookieStore = cookies();
+
+  // cookieStore.set의 세 번째 인자 타입을 직접 추론 — 외부 타입 import 불필요
+  type SetOptions = Parameters<typeof cookieStore.set>[2];
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,7 +15,7 @@ export function createClient() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet: CookieOptionsWithName[]) {
+        setAll(cookiesToSet: { name: string; value: string; options?: SetOptions }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
