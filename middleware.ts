@@ -4,14 +4,19 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  // supabaseResponse.cookies.set의 세 번째 인자 타입을 추론
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // 환경변수 미설정 시 미들웨어 통과 (빌드/개발 초기 대응)
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return supabaseResponse;
+  }
+
   type SetOptions = Parameters<typeof supabaseResponse.cookies.set>[2];
   type CookieToSet = { name: string; value: string; options?: SetOptions };
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  try {
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -26,33 +31,33 @@ export async function middleware(request: NextRequest) {
           );
         },
       },
+    });
+
+    // 세션 갱신 — getUser()는 반드시 호출해야 함
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const pathname = request.nextUrl.pathname;
+
+    if (pathname.startsWith('/auth/callback')) {
+      return supabaseResponse;
     }
-  );
 
-  // 세션 토큰 갱신 (중요: getUser()를 반드시 호출해야 함)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    if (!user && pathname.startsWith('/dashboard')) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/auth/login';
+      return NextResponse.redirect(url);
+    }
 
-  const pathname = request.nextUrl.pathname;
-
-  // 인증 콜백은 항상 통과
-  if (pathname.startsWith('/auth/callback')) {
-    return supabaseResponse;
-  }
-
-  // 비로그인 상태에서 대시보드 접근 시 로그인 페이지로
-  if (!user && pathname.startsWith('/dashboard')) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
-    return NextResponse.redirect(url);
-  }
-
-  // 로그인 상태에서 로그인 페이지 접근 시 대시보드로
-  if (user && pathname.startsWith('/auth/login')) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
+    if (user && pathname.startsWith('/auth/login')) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
+    }
+  } catch (err) {
+    // Supabase 호출 실패 시 요청을 막지 않고 통과
+    console.error('[middleware] Supabase error:', err);
   }
 
   return supabaseResponse;
@@ -60,7 +65,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // 정적 파일과 API 라우트 제외
     '/((?!_next/static|_next/image|favicon.ico|api/).*)',
   ],
 };
