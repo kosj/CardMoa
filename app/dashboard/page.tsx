@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+
+export const dynamic = 'force-dynamic';
 import { PaymentTextParser } from './components/PaymentTextParser';
 import { TransactionList } from './components/TransactionList';
 import { SignOutButton } from './components/SignOutButton';

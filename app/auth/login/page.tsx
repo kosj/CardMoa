@@ -16,13 +16,15 @@ export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
 
   const router = useRouter();
-  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setMessage(null);
+
+    // 핸들러 안에서 생성 — SSR/사전 렌더링 중에는 실행되지 않음
+    const supabase = createClient();
 
     try {
       if (mode === 'signin') {
