@@ -7,6 +7,7 @@ export interface Transaction {
   approved_at: string;
   merchant: string;
   amount: number;
+  currency: string;
   created_at: string;
 }
 
@@ -15,6 +16,7 @@ export interface ParsedTransaction {
   approved_at: string;
   merchant: string;
   amount: number;
+  currency: string;
 }
 
 export interface WebhookRequestBody {
@@ -25,6 +27,7 @@ export interface WebhookRequestBody {
 export interface WebhookResponse {
   success: boolean;
   inserted: number;
+  skipped?: number;
   transactions?: ParsedTransaction[];
   error?: string;
 }

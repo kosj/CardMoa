@@ -5,11 +5,19 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-export function formatAmount(amount: number): string {
-  return new Intl.NumberFormat('ko-KR', {
-    style: 'currency',
-    currency: 'KRW',
+export function formatAmount(amount: number, currency = 'KRW'): string {
+  if (currency === 'KRW') {
+    return new Intl.NumberFormat('ko-KR', {
+      style: 'currency',
+      currency: 'KRW',
+    }).format(amount);
+  }
+  // 외화: 통화코드 + 쉼표 구분 숫자
+  const formatted = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(amount);
+  return `${currency} ${formatted}`;
 }
 
 export function formatDate(dateStr: string): string {

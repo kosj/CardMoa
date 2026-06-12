@@ -67,7 +67,7 @@ export function PaymentTextParser() {
           {isPending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              AI 분석 중…
+              분석 중…
             </>
           ) : (
             '내역 반영하기'
@@ -86,8 +86,20 @@ function ResultBanner({ result }: { result: ParseActionResult }) {
       <div className="mt-4 flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
         <CheckCircle className="h-4 w-4 mt-0.5 shrink-0 text-green-600" />
         <span>
-          <strong>{result.inserted}건</strong>의 결제 내역이 저장되었습니다.
+          <strong>{result.inserted}건</strong> 저장됨
+          {result.skipped > 0 && (
+            <span className="text-green-600"> · {result.skipped}건 중복 건너뜀</span>
+          )}
         </span>
+      </div>
+    );
+  }
+
+  if (result.success && result.skipped > 0) {
+    return (
+      <div className="mt-4 flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+        <Info className="h-4 w-4 mt-0.5 shrink-0 text-yellow-600" />
+        <span>이미 저장된 내역입니다. ({result.skipped}건 중복)</span>
       </div>
     );
   }
@@ -96,9 +108,7 @@ function ResultBanner({ result }: { result: ParseActionResult }) {
     return (
       <div className="mt-4 flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
         <Info className="h-4 w-4 mt-0.5 shrink-0 text-yellow-600" />
-        <span>
-          결제 정보를 찾을 수 없습니다. 문자 내용을 확인 후 다시 시도해주세요.
-        </span>
+        <span>인식된 해외 결제 패턴이 없습니다. 신한 SOL트래블 또는 롯데 트립투로카 알림을 붙여넣어주세요.</span>
       </div>
     );
   }
