@@ -10,14 +10,17 @@ const UUID_REGEX =
 
 /**
  * POST /api/webhook
- * 인증: X-Webhook-Secret 헤더
+ * 인증: X-Webhook-Secret 헤더 또는 ?secret= 쿼리 파라미터 (MacroDroid 등 헤더 미지원 앱용)
  * Body: { text: string, userId: string (UUID) }
  */
 export async function POST(
   request: NextRequest
 ): Promise<NextResponse<WebhookResponse>> {
-  // ① 공유 시크릿 인증
-  const incomingSecret = request.headers.get('x-webhook-secret') ?? '';
+  // ① 시크릿 인증 — 헤더 우선, 없으면 쿼리 파라미터에서 읽음
+  const incomingSecret =
+    request.headers.get('x-webhook-secret') ??
+    new URL(request.url).searchParams.get('secret') ??
+    '';
   const expectedSecret = process.env.WEBHOOK_SECRET ?? '';
 
   if (
