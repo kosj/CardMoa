@@ -16,8 +16,9 @@ const PARSE_PROMPT = `입력된 텍스트에서 카드 결제 정보를 추출�
 
 결제 정보를 찾을 수 없으면 빈 배열 []을 반환하라.`;
 
-// 단종된 1.5 계열 대신 현행 모델 사용. 필요 시 환경변수로 재정의 가능.
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash';
+// 현행 모델 사용. 무료 등급 가용성/할당량은 모델·프로젝트마다 다르므로
+// GEMINI_MODEL 환경변수로 재정의 가능 (예: gemini-2.0-flash, gemini-flash-latest)
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
 
 export async function parsePaymentText(text: string): Promise<ParsedTransaction[]> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -39,8 +40,17 @@ export async function parsePaymentText(text: string): Promise<ParsedTransaction[
     );
     raw = result.response.text().trim();
   } catch (err) {
-    // Gemini API 호출 실패(모델 단종/권한/네트워크 등) — 원본 메시지 보존
     const detail = err instanceof Error ? err.message : String(err);
+
+    // 429: 할당량 초과 — 사용자가 바로 이해할 수 있는 안내로 변환
+    if (/\b429\b|Too Many Requests|quota|RESOURCE_EXHAUSTED/i.test(detail)) {
+      throw new Error(
+        `Gemini 사용 할당량을 초과했습니다 (model=${GEMINI_MODEL}). ` +
+          `Google AI Studio에서 결제(billing)를 활성화하거나, 잠시 후 다시 시도해주세요.`
+      );
+    }
+
+    // 그 외 호출 실패(모델 단종/권한/네트워크 등) — 원본 메시지 보존
     throw new Error(`Gemini API 호출 실패 (model=${GEMINI_MODEL}): ${detail}`);
   }
 
