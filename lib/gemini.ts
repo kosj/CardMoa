@@ -16,45 +16,91 @@ const PARSE_PROMPT = `입력된 텍스트에서 카드 결제 정보를 추출�
 
 결제 정보를 찾을 수 없으면 빈 배열 []을 반환하라.`;
 
-// 현행 모델 사용. 무료 등급 가용성/할당량은 모델·프로젝트마다 다르므로
-// GEMINI_MODEL 환경변수로 재정의 가능 (예: gemini-2.0-flash, gemini-flash-latest)
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
+// 우선순위 순 모델 목록. GEMINI_MODEL 환경변수로 첫 번째 모델을 재정의 가능.
+const MODEL_FALLBACK_CHAIN = [
+  process.env.GEMINI_MODEL ?? 'gemini-2.0-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash-8b',
+];
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+function is5xx(detail: string) {
+  return /\b5\d{2}\b|Service Unavailable|overloaded|UNAVAILABLE/i.test(detail);
+}
+
+function is429(detail: string) {
+  return /\b429\b|Too Many Requests|quota|RESOURCE_EXHAUSTED/i.test(detail);
+}
+
+/** 단일 모델 호출 — 503 등 일시 오류는 최대 3회 지수 백오프 재시도 */
+async function callModel(
+  genAI: GoogleGenerativeAI,
+  modelName: string,
+  prompt: string
+): Promise<string> {
+  const model = genAI.getGenerativeModel({
+    model: modelName,
+    generationConfig: { responseMimeType: 'application/json', temperature: 0 },
+  });
+
+  let lastErr = '';
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const result = await model.generateContent(prompt);
+      return result.response.text().trim();
+    } catch (err) {
+      lastErr = err instanceof Error ? err.message : String(err);
+      if (is5xx(lastErr) && attempt < 2) {
+        await sleep(2000 * 2 ** attempt); // 2s → 4s → 8s
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error(lastErr);
+}
 
 export async function parsePaymentText(text: string): Promise<ParsedTransaction[]> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY 환경변수가 설정되지 않았습니다.');
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: GEMINI_MODEL,
-    generationConfig: {
-      responseMimeType: 'application/json',
-      temperature: 0,
-    },
-  });
+  const prompt = `${PARSE_PROMPT}\n\n---\n${text}`;
 
-  let raw: string;
-  try {
-    const result = await model.generateContent(
-      `${PARSE_PROMPT}\n\n---\n${text}`
-    );
-    raw = result.response.text().trim();
-  } catch (err) {
-    const detail = err instanceof Error ? err.message : String(err);
+  let raw = '';
+  let lastErr = '';
 
-    // 429: 할당량 초과 — 사용자가 바로 이해할 수 있는 안내로 변환
-    if (/\b429\b|Too Many Requests|quota|RESOURCE_EXHAUSTED/i.test(detail)) {
-      throw new Error(
-        `Gemini 사용 할당량을 초과했습니다 (model=${GEMINI_MODEL}). ` +
-          `Google AI Studio에서 결제(billing)를 활성화하거나, 잠시 후 다시 시도해주세요.`
-      );
+  // 모델 체인 순서로 시도 — 429/5xx 모두 다음 모델로 폴백
+  for (const modelName of MODEL_FALLBACK_CHAIN) {
+    try {
+      raw = await callModel(genAI, modelName, prompt);
+      break; // 성공 시 루프 탈출
+    } catch (err) {
+      lastErr = err instanceof Error ? err.message : String(err);
+
+      if (is429(lastErr) || is5xx(lastErr)) {
+        // 다음 모델로 폴백
+        console.warn(`[gemini] ${modelName} 실패, 다음 모델로 전환:`, lastErr.slice(0, 120));
+        continue;
+      }
+
+      // 그 외(인증 실패, 모델 단종 등) — 즉시 중단
+      throw new Error(`Gemini API 호출 실패 (model=${modelName}): ${lastErr}`);
     }
-
-    // 그 외 호출 실패(모델 단종/권한/네트워크 등) — 원본 메시지 보존
-    throw new Error(`Gemini API 호출 실패 (model=${GEMINI_MODEL}): ${detail}`);
   }
 
-  // 모델이 마크다운 코드 블록을 감싸는 경우 제거
+  if (!raw) {
+    if (is429(lastErr)) {
+      throw new Error(
+        '모든 Gemini 모델의 무료 할당량을 초과했습니다. ' +
+          'Google AI Studio에서 결제(billing)를 활성화하거나 잠시 후 다시 시도해주세요.'
+      );
+    }
+    throw new Error(`Gemini API 호출 실패 (모든 모델 시도 후): ${lastErr}`);
+  }
+
+  // 마크다운 코드 블록 제거
   const cleaned = raw
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
@@ -89,7 +135,6 @@ function normalizeCardCompany(value: unknown): 'SHINHAN' | 'LOTTE' | 'UNKNOWN' {
 }
 
 function normalizeDate(value: string): string {
-  // YYYY-MM-DD HH:mm:ss 또는 YYYY-MM-DDTHH:mm:ss 허용
   if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}/.test(value)) {
     return value.replace('T', ' ').slice(0, 19);
   }
