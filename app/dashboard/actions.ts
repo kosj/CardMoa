@@ -47,10 +47,12 @@ export async function parseAndSavePaymentText(
     transactions = await parsePaymentText(text.trim());
   } catch (err) {
     console.error('[action] AI parse error:', err);
+    const detail =
+      err instanceof Error ? err.message : '알 수 없는 오류';
     return {
       success: false,
       inserted: 0,
-      error: 'AI 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      error: `AI 분석 중 오류가 발생했습니다: ${detail}`,
     };
   }
 
