@@ -93,7 +93,7 @@ export function StatsDashboard({ transactions }: Props) {
       map.set(t.merchant, { value: cur.value + t.amount, count: cur.count + 1 });
     });
     const total = yearTx.reduce((s, t) => s + t.amount, 0);
-    const sorted = [...map.entries()]
+    const sorted = Array.from(map.entries())
       .map(([name, { value, count }]) => ({
         name,
         value,
