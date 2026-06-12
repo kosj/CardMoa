@@ -52,11 +52,9 @@ interface Props {
 
 export function StatsDashboard({ transactions }: Props) {
   const availableYears = useMemo(() => {
-    const years = [
-      ...new Set(
-        transactions.map((t) => new Date(t.approved_at).getFullYear())
-      ),
-    ].sort((a, b) => b - a);
+    const years = Array.from(
+      new Set(transactions.map((t) => new Date(t.approved_at).getFullYear()))
+    ).sort((a, b) => b - a);
     if (years.length === 0) years.push(new Date().getFullYear());
     return years;
   }, [transactions]);
