@@ -48,9 +48,15 @@ const CARD_COLOR: Record<string, string> = {
 
 interface Props {
   transactions: Transaction[];
+  exchangeRates: Record<string, number>;
 }
 
-export function StatsDashboard({ transactions }: Props) {
+function toKRW(amount: number, currency: string, rates: Record<string, number>): number {
+  if (currency === 'KRW') return amount;
+  return Math.round(amount * (rates[currency] ?? 1));
+}
+
+export function StatsDashboard({ transactions, exchangeRates }: Props) {
   const availableYears = useMemo(() => {
     const years = Array.from(
       new Set(transactions.map((t) => new Date(t.approved_at).getFullYear()))
@@ -70,7 +76,7 @@ export function StatsDashboard({ transactions }: Props) {
     [transactions, selectedYear]
   );
 
-  // ── 월별 데이터
+  // ── 월별 데이터 (KRW 환산)
   const monthlyData: MonthlyData[] = useMemo(() => {
     const months = Array.from({ length: 12 }, (_, i) => ({
       month: `${i + 1}월`,
@@ -79,20 +85,21 @@ export function StatsDashboard({ transactions }: Props) {
     }));
     yearTx.forEach((t) => {
       const m = new Date(t.approved_at).getMonth();
-      months[m].total += t.amount;
+      months[m].total += toKRW(t.amount, t.currency, exchangeRates);
       months[m].count += 1;
     });
     return months;
-  }, [yearTx]);
+  }, [yearTx, exchangeRates]);
 
-  // ── 가맹점 분포 (상위 8개 + 기타)
+  // ── 가맹점 분포 (상위 8개 + 기타, KRW 환산)
   const merchantData: MerchantSlice[] = useMemo(() => {
     const map = new Map<string, { value: number; count: number }>();
     yearTx.forEach((t) => {
+      const krw = toKRW(t.amount, t.currency, exchangeRates);
       const cur = map.get(t.merchant) ?? { value: 0, count: 0 };
-      map.set(t.merchant, { value: cur.value + t.amount, count: cur.count + 1 });
+      map.set(t.merchant, { value: cur.value + krw, count: cur.count + 1 });
     });
-    const total = yearTx.reduce((s, t) => s + t.amount, 0);
+    const total = yearTx.reduce((s, t) => s + toKRW(t.amount, t.currency, exchangeRates), 0);
     const sorted = Array.from(map.entries())
       .map(([name, { value, count }]) => ({
         name,
@@ -115,33 +122,41 @@ export function StatsDashboard({ transactions }: Props) {
       percentage: total > 0 ? (etcValue / total) * 100 : 0,
     });
     return top;
-  }, [yearTx]);
+  }, [yearTx, exchangeRates]);
 
-  // ── 카드사 분포
+  // ── 카드사 분포 (KRW 환산)
   const cardData = useMemo(() => {
-    const total = yearTx.reduce((s, t) => s + t.amount, 0);
+    const total = yearTx.reduce((s, t) => s + toKRW(t.amount, t.currency, exchangeRates), 0);
     const map = new Map<string, number>();
-    yearTx.forEach((t) => map.set(t.card_company, (map.get(t.card_company) ?? 0) + t.amount));
+    yearTx.forEach((t) =>
+      map.set(t.card_company, (map.get(t.card_company) ?? 0) + toKRW(t.amount, t.currency, exchangeRates))
+    );
     return ['SHINHAN', 'LOTTE', 'UNKNOWN']
       .map((k) => ({ key: k, amount: map.get(k) ?? 0, pct: total > 0 ? ((map.get(k) ?? 0) / total) * 100 : 0 }))
       .filter((d) => d.amount > 0);
-  }, [yearTx]);
+  }, [yearTx, exchangeRates]);
 
-  // ── 요약 통계
+  // ── 요약 통계 (KRW 환산)
   const { yearTotal, currentMonthTotal, monthlyAvg, topMerchant } = useMemo(() => {
-    const yearTotal = yearTx.reduce((s, t) => s + t.amount, 0);
+    const yearTotal = yearTx.reduce((s, t) => s + toKRW(t.amount, t.currency, exchangeRates), 0);
     const now = new Date();
     const currentMonthTotal =
       selectedYear === now.getFullYear()
         ? yearTx
             .filter((t) => new Date(t.approved_at).getMonth() === now.getMonth())
-            .reduce((s, t) => s + t.amount, 0)
+            .reduce((s, t) => s + toKRW(t.amount, t.currency, exchangeRates), 0)
         : 0;
     const activeMonths = monthlyData.filter((m) => m.total > 0).length;
     const monthlyAvg = activeMonths > 0 ? yearTotal / activeMonths : 0;
     const topMerchant = merchantData[0]?.name ?? '-';
     return { yearTotal, currentMonthTotal, monthlyAvg, topMerchant };
-  }, [yearTx, selectedYear, monthlyData, merchantData]);
+  }, [yearTx, selectedYear, monthlyData, merchantData, exchangeRates]);
+
+  const rateNote = useMemo(() => {
+    const entries = Object.entries(exchangeRates);
+    if (entries.length === 0) return null;
+    return entries.map(([cur, rate]) => `${cur} ₩${rate.toLocaleString()}`).join(' · ');
+  }, [exchangeRates]);
 
   if (transactions.length === 0) return null;
 
@@ -154,6 +169,11 @@ export function StatsDashboard({ transactions }: Props) {
         <StatCard icon={<CreditCard className="h-4 w-4 text-violet-500" />} label="월 평균 지출" value={formatAmount(monthlyAvg)} />
         <StatCard icon={<Store className="h-4 w-4 text-amber-500" />} label="최다 가맹점" value={topMerchant} small />
       </div>
+      {rateNote && (
+        <p className="text-xs text-gray-400 text-right">
+          환율 기준 (1시간 캐시) · {rateNote}
+        </p>
+      )}
 
       {/* 월별 지출 */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
