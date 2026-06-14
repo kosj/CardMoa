@@ -69,7 +69,7 @@ export default async function DashboardPage() {
         <StatsDashboard transactions={tx} exchangeRates={exchangeRates} />
 
         {/* 결제 내역 목록 */}
-        <TransactionList transactions={tx.slice(0, 100)} />
+        <TransactionList transactions={tx} />
 
         {/* 결제 알림 붙여넣기 — 하단 */}
         <PaymentTextParser />
