@@ -17,11 +17,14 @@ function parseAmount(raw: string): number {
  *
  * SOL트래블해외승인 06/13 06:24
  * JPY 570 잔액JPY59,050 (JP)MCDONALD S
+ *
+ * SOL트래블해외승인(현금인출) 06/15 13:56
+ * JPY 5,000 잔액JPY139,719 (JP)SEVEN BANK
  */
 function parseShinhan(text: string): ParsedTransaction[] {
   const results: ParsedTransaction[] = [];
   const re =
-    /SOL트래블해외승인\s+(\d{1,2}\/\d{2})\s+(\d{2}:\d{2})\r?\n([A-Z]{3})\s+([\d,]+)\s+잔액[A-Z]{3}[\d,.]+\s+\([A-Z]+\)(.*)/g;
+    /SOL트래블해외승인(?:\([^)]+\))?\s+(\d{1,2}\/\d{2})\s+(\d{2}:\d{2})\r?\n([A-Z]{3})\s+([\d,]+)\s+잔액[A-Z]{3}[\d,.]+\s+\([A-Z]+\)(.*)/g;
 
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) {
