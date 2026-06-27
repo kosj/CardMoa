@@ -29,10 +29,10 @@ export function PaymentTextParser() {
   };
 
   return (
-    <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <section className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-6">
       <div className="flex items-center gap-2 mb-1">
-        <ClipboardPaste className="h-5 w-5 text-blue-600" />
-        <h2 className="text-base font-semibold text-gray-900">
+        <ClipboardPaste className="h-5 w-5 text-rose-400" />
+        <h2 className="text-base font-bold text-gray-800">
           결제 알림 붙여넣기
         </h2>
       </div>
@@ -50,7 +50,7 @@ export function PaymentTextParser() {
         placeholder={
           '[신한카드] 6/11 14:30 스타벅스커피 5,500원 승인\n\n[롯데카드] 6/11 18:22 이마트 32,400원 승인\n\n여러 건을 한번에 붙여넣을 수 있습니다.'
         }
-        className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 font-mono leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 resize-none transition-colors"
+        className="w-full rounded-2xl border border-rose-100 bg-rose-50/40 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 font-mono leading-relaxed focus:border-rose-300 focus:bg-white focus:outline-none focus:ring-1 focus:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-60 resize-none transition-colors"
       />
 
       <div className="mt-3 flex items-center justify-between gap-4">
@@ -62,7 +62,7 @@ export function PaymentTextParser() {
           type="button"
           onClick={handleSubmit}
           disabled={isPending || !text.trim()}
-          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-pink-400 px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-rose-200 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-opacity"
         >
           {isPending ? (
             <>

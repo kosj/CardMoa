@@ -24,10 +24,10 @@ export function DashboardNav() {
             <Link
               key={href}
               href={href}
-              className={`inline-flex items-center gap-1.5 border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
+              className={`inline-flex items-center gap-1.5 border-b-2 px-3 py-3 text-sm font-semibold transition-colors ${
                 active
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-800'
+                  ? 'border-rose-400 text-rose-500'
+                  : 'border-transparent text-gray-400 hover:text-rose-400'
               }`}
             >
               <Icon className="h-4 w-4" />

@@ -22,9 +22,9 @@ interface Props {
 }
 
 const COLORS = [
-  '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
-  '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
-  '#6b7280',
+  '#fb7185', '#f472b6', '#c084fc', '#f9a8d4',
+  '#fbbf24', '#a78bfa', '#34d399', '#fda4af',
+  '#cbd5e1',
 ];
 
 function CustomTooltip({
@@ -39,7 +39,7 @@ function CustomTooltip({
   return (
     <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-lg text-sm">
       <p className="font-semibold text-gray-900 mb-0.5">{d.name}</p>
-      <p className="text-blue-600">{formatAmount(d.value)}</p>
+      <p className="text-rose-500">{formatAmount(d.value)}</p>
       <p className="text-gray-500">
         {d.count}건 · {d.percentage.toFixed(1)}%
       </p>

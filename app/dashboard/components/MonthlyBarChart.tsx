@@ -39,7 +39,7 @@ function CustomTooltip({
   return (
     <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-lg text-sm">
       <p className="font-semibold text-gray-900">{label}</p>
-      <p className="text-blue-600">{formatAmount(total)}</p>
+      <p className="text-rose-500">{formatAmount(total)}</p>
       <p className="text-gray-500">{count}건</p>
     </div>
   );
@@ -72,8 +72,8 @@ export function MonthlyBarChart({ data, year }: Props) {
               key={`cell-${index}`}
               fill={
                 year === thisYear && index === CURRENT_MONTH
-                  ? '#2563eb'
-                  : '#93c5fd'
+                  ? '#fb7185'
+                  : '#fbcfe8'
               }
             />
           ))}

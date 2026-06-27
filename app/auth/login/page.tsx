@@ -58,11 +58,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-rose-100 via-pink-50 to-white flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* 로고 */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-indigo-600 rounded-2xl mb-4 shadow-sm">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-3xl mb-4 bg-gradient-to-br from-rose-400 to-pink-400 shadow-md shadow-rose-200">
             <GraduationCap className="h-7 w-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">고은별 대학생활 가계부</h1>
@@ -70,8 +70,8 @@ export default function LoginPage() {
         </div>
 
         {/* 카드 */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-5">
+        <div className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-5">
             {mode === 'signin' ? '로그인' : '회원가입'}
           </h2>
 
@@ -92,7 +92,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
                 placeholder="you@example.com"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full rounded-xl border border-rose-100 bg-rose-50/40 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-rose-300 focus:bg-white focus:outline-none focus:ring-1 focus:ring-rose-300 disabled:opacity-60 disabled:text-gray-500"
               />
             </div>
 
@@ -113,7 +113,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 placeholder="••••••••"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full rounded-xl border border-rose-100 bg-rose-50/40 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-rose-300 focus:bg-white focus:outline-none focus:ring-1 focus:ring-rose-300 disabled:opacity-60 disabled:text-gray-500"
               />
             </div>
 
@@ -134,7 +134,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-pink-400 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-rose-200 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-opacity"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {mode === 'signin' ? '로그인' : '가입하기'}
@@ -145,7 +145,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={toggleMode}
-              className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+              className="text-sm text-rose-500 hover:text-rose-600 hover:underline"
             >
               {mode === 'signin'
                 ? '계정이 없으신가요? 회원가입'

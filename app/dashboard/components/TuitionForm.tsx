@@ -34,9 +34,9 @@ export function TuitionForm() {
   };
 
   return (
-    <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <section className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-6">
       <div className="flex items-center gap-2 mb-1">
-        <GraduationCap className="h-5 w-5 text-indigo-600" />
+        <GraduationCap className="h-5 w-5 text-violet-600" />
         <h2 className="text-base font-semibold text-gray-900">수업료 입력</h2>
       </div>
       <p className="text-sm text-gray-500 mb-4">
@@ -51,7 +51,7 @@ export function TuitionForm() {
             value={date}
             onChange={(e) => setDate(e.target.value)}
             disabled={isPending}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 disabled:opacity-60"
           />
         </div>
         <div className="sm:col-span-1">
@@ -63,7 +63,7 @@ export function TuitionForm() {
             onChange={(e) => setAmount(e.target.value.replace(/[^\d,]/g, ''))}
             disabled={isPending}
             placeholder="예: 4,200,000"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 tabular-nums focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 tabular-nums focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 disabled:opacity-60"
           />
         </div>
         <div className="sm:col-span-1">
@@ -74,7 +74,7 @@ export function TuitionForm() {
             onChange={(e) => setNote(e.target.value)}
             disabled={isPending}
             placeholder="예: 2학기 등록금"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 disabled:opacity-60"
           />
         </div>
       </div>
@@ -84,7 +84,7 @@ export function TuitionForm() {
           type="button"
           onClick={handleSubmit}
           disabled={isPending || !amount.trim()}
-          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-violet-500 to-rose-400 px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-rose-200 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-opacity"
         >
           {isPending ? (
             <>

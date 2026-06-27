@@ -42,10 +42,10 @@ const CARD_LABEL: Record<string, string> = {
   UNKNOWN: '기타',
 };
 const CARD_COLOR: Record<string, string> = {
-  SHINHAN: 'bg-blue-500',
-  LOTTE: 'bg-red-500',
-  TUITION: 'bg-indigo-500',
-  UNKNOWN: 'bg-gray-400',
+  SHINHAN: 'bg-sky-400',
+  LOTTE: 'bg-rose-400',
+  TUITION: 'bg-violet-400',
+  UNKNOWN: 'bg-gray-300',
 };
 
 interface Props {
@@ -166,10 +166,10 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
     <div className="space-y-4">
       {/* 요약 카드 4개 */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard icon={<Calendar className="h-4 w-4 text-blue-500" />} label="이번 달 지출" value={formatAmount(currentMonthTotal)} />
-        <StatCard icon={<TrendingUp className="h-4 w-4 text-emerald-500" />} label={`${selectedYear}년 총 지출`} value={formatAmount(yearTotal)} />
-        <StatCard icon={<CreditCard className="h-4 w-4 text-violet-500" />} label="월 평균 지출" value={formatAmount(monthlyAvg)} />
-        <StatCard icon={<Store className="h-4 w-4 text-amber-500" />} label="최다 가맹점" value={topMerchant} small />
+        <StatCard icon={<Calendar className="h-4 w-4 text-rose-400" />} label="이번 달 지출" value={formatAmount(currentMonthTotal)} />
+        <StatCard icon={<TrendingUp className="h-4 w-4 text-pink-400" />} label={`${selectedYear}년 총 지출`} value={formatAmount(yearTotal)} />
+        <StatCard icon={<CreditCard className="h-4 w-4 text-violet-400" />} label="월 평균 지출" value={formatAmount(monthlyAvg)} />
+        <StatCard icon={<Store className="h-4 w-4 text-amber-400" />} label="최다 가맹점" value={topMerchant} small />
       </div>
       {rateNote && (
         <p className="text-xs text-gray-400 text-right">
@@ -178,26 +178,26 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
       )}
 
       {/* 월별 지출 */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <div className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-900">월별 지출</h3>
+          <h3 className="text-sm font-bold text-gray-800">월별 지출</h3>
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setYearIdx((i) => Math.min(i + 1, availableYears.length - 1))}
               disabled={yearIdx >= availableYears.length - 1}
-              className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 transition-colors"
+              className="p-1 rounded-full hover:bg-rose-50 disabled:opacity-30 transition-colors"
             >
-              <ChevronLeft className="h-4 w-4 text-gray-600" />
+              <ChevronLeft className="h-4 w-4 text-rose-400" />
             </button>
-            <span className="text-sm font-medium text-gray-700 w-12 text-center">
+            <span className="text-sm font-semibold text-gray-700 w-12 text-center">
               {selectedYear}
             </span>
             <button
               onClick={() => setYearIdx((i) => Math.max(i - 1, 0))}
               disabled={yearIdx <= 0}
-              className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 transition-colors"
+              className="p-1 rounded-full hover:bg-rose-50 disabled:opacity-30 transition-colors"
             >
-              <ChevronRight className="h-4 w-4 text-gray-600" />
+              <ChevronRight className="h-4 w-4 text-rose-400" />
             </button>
           </div>
         </div>
@@ -207,15 +207,15 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
       {/* 가맹점 분포 + 카드사 분포 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* 가맹점 분포 */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-1">가맹점 분포</h3>
+        <div className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-5">
+          <h3 className="text-sm font-bold text-gray-800 mb-1">가맹점 분포</h3>
           <p className="text-xs text-gray-400 mb-3">{selectedYear}년 · 상위 8개</p>
           <MerchantPieChart data={merchantData} />
         </div>
 
         {/* 카드사 분포 */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-1">카드사 분포</h3>
+        <div className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-5">
+          <h3 className="text-sm font-bold text-gray-800 mb-1">카드사 분포</h3>
           <p className="text-xs text-gray-400 mb-4">{selectedYear}년</p>
           {cardData.length === 0 ? (
             <p className="text-sm text-gray-400 mt-8 text-center">데이터가 없습니다.</p>
@@ -256,7 +256,7 @@ function StatCard({
   small?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
+    <div className="bg-white rounded-2xl border border-rose-100 shadow-sm shadow-rose-100/40 px-4 py-3.5">
       <div className="flex items-center gap-1.5 mb-2">
         {icon}
         <span className="text-xs text-gray-500">{label}</span>
