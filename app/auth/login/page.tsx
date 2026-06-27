@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { CreditCard, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { GraduationCap, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 
 type Mode = 'signin' | 'signup';
 
@@ -62,11 +62,11 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* 로고 */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-2xl mb-4 shadow-sm">
-            <CreditCard className="h-7 w-7 text-white" />
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-indigo-600 rounded-2xl mb-4 shadow-sm">
+            <GraduationCap className="h-7 w-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">CardMoa</h1>
-          <p className="text-sm text-gray-500 mt-1">카드 결제 내역 자동 관리</p>
+          <h1 className="text-2xl font-bold text-gray-900">고은별 대학생활 가계부</h1>
+          <p className="text-sm text-gray-500 mt-1">딸아이 학교생활 지출 관리</p>
         </div>
 
         {/* 카드 */}

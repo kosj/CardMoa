@@ -1,4 +1,4 @@
-export type CardCompany = 'SHINHAN' | 'LOTTE' | 'UNKNOWN';
+export type CardCompany = 'SHINHAN' | 'LOTTE' | 'TUITION' | 'UNKNOWN';
 
 export interface Transaction {
   id: string;

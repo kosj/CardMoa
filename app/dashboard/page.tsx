@@ -1,9 +1,7 @@
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { PaymentTextParser } from './components/PaymentTextParser';
-import { TransactionList } from './components/TransactionList';
 import { StatsDashboard } from './components/StatsDashboard';
-import { SignOutButton } from './components/SignOutButton';
+import { TuitionForm } from './components/TuitionForm';
 import type { Transaction } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -31,12 +29,6 @@ async function getExchangeRates(): Promise<Record<string, number>> {
 export default async function DashboardPage() {
   const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect('/auth/login');
-
   const [{ data: transactions, error }, exchangeRates] = await Promise.all([
     supabase
       .from('transactions')
@@ -53,27 +45,15 @@ export default async function DashboardPage() {
   const tx = (transactions ?? []) as Transaction[];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div>
-            <p className="text-base font-bold text-gray-900">CardMoa</p>
-            <p className="text-xs text-gray-400">{user.email}</p>
-          </div>
-          <SignOutButton />
-        </div>
-      </header>
+    <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8 space-y-6">
+      {/* 통계 */}
+      <StatsDashboard transactions={tx} exchangeRates={exchangeRates} />
 
-      <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8 space-y-6">
-        {/* 통계 */}
-        <StatsDashboard transactions={tx} exchangeRates={exchangeRates} />
+      {/* 수업료 입력 */}
+      <TuitionForm />
 
-        {/* 결제 내역 목록 */}
-        <TransactionList transactions={tx} />
-
-        {/* 결제 알림 붙여넣기 — 하단 */}
-        <PaymentTextParser />
-      </main>
-    </div>
+      {/* 결제 알림 붙여넣기 */}
+      <PaymentTextParser />
+    </main>
   );
 }

@@ -62,5 +62,63 @@ export async function parseAndSavePaymentText(
   const skippedCount = candidates.length - insertedCount;
 
   revalidatePath('/dashboard');
+  revalidatePath('/dashboard/transactions');
   return { success: true, inserted: insertedCount, skipped: skippedCount };
+}
+
+export interface TuitionActionResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * 수업료를 지출 내역에 추가한다.
+ * card_company='TUITION', currency='KRW'로 저장되어 전체 통계에 합산된다.
+ */
+export async function addTuition(input: {
+  amount: number;
+  date: string; // YYYY-MM-DD
+  note?: string;
+}): Promise<TuitionActionResult> {
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { success: false, error: '로그인이 필요합니다.' };
+  }
+
+  const amount = Number(input.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { success: false, error: '금액을 올바르게 입력해주세요.' };
+  }
+
+  const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRe.test(input.date)) {
+    return { success: false, error: '날짜를 올바르게 입력해주세요.' };
+  }
+
+  const merchant = (input.note?.trim() || '수업료').slice(0, 200);
+  // 정오(12:00)로 저장 — 타임존 경계에서 날짜가 밀리는 것을 방지
+  const approved_at = `${input.date} 12:00:00`;
+
+  const { error: dbError } = await supabase.from('transactions').insert({
+    user_id: user.id,
+    card_company: 'TUITION',
+    approved_at,
+    merchant,
+    amount,
+    currency: 'KRW',
+  });
+
+  if (dbError) {
+    console.error('[action] tuition insert error:', dbError);
+    return { success: false, error: '저장 중 오류가 발생했습니다.' };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/transactions');
+  return { success: true };
 }

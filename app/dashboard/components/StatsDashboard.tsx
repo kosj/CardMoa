@@ -38,11 +38,13 @@ const MerchantPieChart = dynamic(
 const CARD_LABEL: Record<string, string> = {
   SHINHAN: '신한카드',
   LOTTE: '롯데카드',
+  TUITION: '수업료',
   UNKNOWN: '기타',
 };
 const CARD_COLOR: Record<string, string> = {
   SHINHAN: 'bg-blue-500',
   LOTTE: 'bg-red-500',
+  TUITION: 'bg-indigo-500',
   UNKNOWN: 'bg-gray-400',
 };
 
@@ -131,7 +133,7 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
     yearTx.forEach((t) =>
       map.set(t.card_company, (map.get(t.card_company) ?? 0) + toKRW(t.amount, t.currency, exchangeRates))
     );
-    return ['SHINHAN', 'LOTTE', 'UNKNOWN']
+    return ['SHINHAN', 'LOTTE', 'TUITION', 'UNKNOWN']
       .map((k) => ({ key: k, amount: map.get(k) ?? 0, pct: total > 0 ? ((map.get(k) ?? 0) / total) * 100 : 0 }))
       .filter((d) => d.amount > 0);
   }, [yearTx, exchangeRates]);

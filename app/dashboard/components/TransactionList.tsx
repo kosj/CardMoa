@@ -8,12 +8,14 @@ import type { Transaction, CardCompany } from '@/types';
 const CARD_BADGE: Record<CardCompany, string> = {
   SHINHAN: 'bg-blue-100 text-blue-800',
   LOTTE: 'bg-red-100 text-red-800',
+  TUITION: 'bg-indigo-100 text-indigo-800',
   UNKNOWN: 'bg-gray-100 text-gray-600',
 };
 
 const CARD_LABEL: Record<CardCompany, string> = {
   SHINHAN: '신한',
   LOTTE: '롯데',
+  TUITION: '수업료',
   UNKNOWN: '기타',
 };
 
