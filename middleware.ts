@@ -40,16 +40,22 @@ export async function middleware(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
-    if (pathname.startsWith('/auth/callback')) {
+    // 인증 콜백·자동 로그인 라우트는 그대로 통과 (리다이렉트 루프 방지)
+    if (
+      pathname.startsWith('/auth/callback') ||
+      pathname.startsWith('/auth/auto')
+    ) {
       return supabaseResponse;
     }
 
+    // 미인증 상태로 대시보드 접근 시 → 자동 로그인 라우트로
     if (!user && pathname.startsWith('/dashboard')) {
       const url = request.nextUrl.clone();
-      url.pathname = '/auth/login';
+      url.pathname = '/auth/auto';
       return NextResponse.redirect(url);
     }
 
+    // 이미 로그인했는데 로그인 폼으로 가면 대시보드로
     if (user && pathname.startsWith('/auth/login')) {
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';

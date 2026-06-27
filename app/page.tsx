@@ -16,8 +16,8 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const ctaHref = user ? '/dashboard' : '/auth/login';
-  const ctaLabel = user ? '가계부 열기' : '시작하기';
+  const ctaHref = '/dashboard';
+  const ctaLabel = user ? '가계부 열기' : '바로 시작하기';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-100 via-pink-50 to-white">
