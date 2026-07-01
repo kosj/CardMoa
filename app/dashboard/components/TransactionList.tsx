@@ -28,9 +28,15 @@ const CURRENCY_BADGE: Record<string, string> = {
 
 interface Props {
   transactions: Transaction[];
+  exchangeRates?: Record<string, number>;
 }
 
-export function TransactionList({ transactions }: Props) {
+function toKRW(amount: number, currency: string, rates: Record<string, number>): number {
+  if (currency === 'KRW') return amount;
+  return Math.round(amount * (rates[currency] ?? 1));
+}
+
+export function TransactionList({ transactions, exchangeRates = {} }: Props) {
   // 데이터에 있는 연-월 목록 (최신순)
   const months = useMemo(() => {
     const set = new Set<string>();
@@ -53,12 +59,10 @@ export function TransactionList({ transactions }: Props) {
     });
   }, [transactions, selectedMonth]);
 
+  // 외화는 환율로 원화 환산해 합산
   const monthTotal = useMemo(
-    () =>
-      filtered
-        .filter((t) => t.currency === 'KRW')
-        .reduce((s, t) => s + t.amount, 0),
-    [filtered]
+    () => filtered.reduce((s, t) => s + toKRW(t.amount, t.currency, exchangeRates), 0),
+    [filtered, exchangeRates]
   );
 
   const label = selectedMonth
@@ -106,7 +110,7 @@ export function TransactionList({ transactions }: Props) {
 
         {filtered.length > 0 && (
           <p className="mt-2 text-xs text-gray-400">
-            이 달 원화 합계{' '}
+            이 달 지출 합계 (원화 환산){' '}
             <span className="font-semibold text-rose-500">
               {formatAmount(monthTotal)}
             </span>
