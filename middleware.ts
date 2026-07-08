@@ -33,34 +33,8 @@ export async function middleware(request: NextRequest) {
       },
     });
 
-    // 세션 갱신 — getUser()는 반드시 호출해야 함
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const pathname = request.nextUrl.pathname;
-
-    // 인증 콜백·자동 로그인 라우트는 그대로 통과 (리다이렉트 루프 방지)
-    if (
-      pathname.startsWith('/auth/callback') ||
-      pathname.startsWith('/auth/auto')
-    ) {
-      return supabaseResponse;
-    }
-
-    // 미인증 상태로 대시보드 접근 시 → 자동 로그인 라우트로
-    if (!user && pathname.startsWith('/dashboard')) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/auth/auto';
-      return NextResponse.redirect(url);
-    }
-
-    // 이미 로그인했는데 로그인 폼으로 가면 대시보드로
-    if (user && pathname.startsWith('/auth/login')) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/dashboard';
-      return NextResponse.redirect(url);
-    }
+    // 세션 갱신 목적으로만 호출 (로그인 없이 공개 접근하므로 리다이렉트 없음)
+    await supabase.auth.getUser();
   } catch (err) {
     // Supabase 호출 실패 시 요청을 막지 않고 통과
     console.error('[middleware] Supabase error:', err);

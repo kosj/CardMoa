@@ -1,23 +1,14 @@
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
 import { GraduationCap } from 'lucide-react';
-import { SignOutButton } from './components/SignOutButton';
+import { APP_USER_EMAIL } from '@/lib/app-user';
 import { DashboardNav } from './components/DashboardNav';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect('/auth/login');
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50/70 via-pink-50/30 to-white">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-rose-100">
@@ -28,10 +19,9 @@ export default async function DashboardLayout({
             </span>
             <div>
               <p className="text-base font-bold text-gray-800">고은별 대학생활 가계부</p>
-              <p className="text-xs text-gray-400">{user.email}</p>
+              <p className="text-xs text-gray-400">{APP_USER_EMAIL}</p>
             </div>
           </div>
-          <SignOutButton />
         </div>
         <DashboardNav />
       </header>

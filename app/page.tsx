@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
 import {
   GraduationCap,
   Wallet,
@@ -10,14 +9,9 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+export default function HomePage() {
   const ctaHref = '/dashboard';
-  const ctaLabel = user ? '가계부 열기' : '바로 시작하기';
+  const ctaLabel = '가계부 열기';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-100 via-pink-50 to-white">
