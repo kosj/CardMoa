@@ -91,8 +91,8 @@ export async function addTuition(input: {
   }
 
   const merchant = (input.note?.trim() || '수업료').slice(0, 200);
-  // 정오(12:00)로 저장 — 타임존 경계에서 날짜가 밀리는 것을 방지
-  const approved_at = `${input.date} 12:00:00`;
+  // 정오(12:00) KST로 저장 — 타임존 경계에서 날짜가 밀리는 것을 방지
+  const approved_at = `${input.date} 12:00:00+09:00`;
 
   const admin = createAdminClient();
   const { error: dbError } = await admin.from('transactions').insert({

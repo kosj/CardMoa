@@ -2,10 +2,11 @@ import type { ParsedTransaction } from '@/types';
 
 const YEAR = new Date().getFullYear(); // 연도 미표기 시 현재 연도로 가정
 
-/** MM/DD HH:mm → YYYY-MM-DD HH:mm:ss */
+/** MM/DD HH:mm → YYYY-MM-DD HH:mm:ss+09:00 (KST 기준) */
 function toDateTime(monthDay: string, time: string): string {
   const [m, d] = monthDay.split('/');
-  return `${YEAR}-${m.padStart(2, '0')}-${d.padStart(2, '0')} ${time}:00`;
+  // 알림 시각은 한국 시간이므로 +09:00 오프셋을 명시해 UTC로 오해되지 않게 한다
+  return `${YEAR}-${m.padStart(2, '0')}-${d.padStart(2, '0')} ${time}:00+09:00`;
 }
 
 function parseAmount(raw: string): number {

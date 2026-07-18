@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Heart, ReceiptText, ChevronLeft, ChevronRight } from 'lucide-react';
-import { formatAmount, formatDate } from '@/lib/utils';
+import { formatAmount, formatDate, seoulDateParts } from '@/lib/utils';
 import type { Transaction, CardCompany } from '@/types';
 
 const CARD_BADGE: Record<CardCompany, string> = {
@@ -37,13 +37,15 @@ function toKRW(amount: number, currency: string, rates: Record<string, number>):
 }
 
 export function TransactionList({ transactions, exchangeRates = {} }: Props) {
-  // 데이터에 있는 연-월 목록 (최신순)
+  // 데이터에 있는 연-월 목록 (최신순, KST 기준)
+  const monthKey = (dateStr: string) => {
+    const { year, month } = seoulDateParts(dateStr);
+    return `${year}-${String(month).padStart(2, '0')}`;
+  };
+
   const months = useMemo(() => {
     const set = new Set<string>();
-    transactions.forEach((t) => {
-      const d = new Date(t.approved_at);
-      set.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
-    });
+    transactions.forEach((t) => set.add(monthKey(t.approved_at)));
     return Array.from(set).sort((a, b) => b.localeCompare(a));
   }, [transactions]);
 
@@ -52,11 +54,7 @@ export function TransactionList({ transactions, exchangeRates = {} }: Props) {
 
   const filtered = useMemo(() => {
     if (!selectedMonth) return [];
-    return transactions.filter((t) => {
-      const d = new Date(t.approved_at);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      return key === selectedMonth;
-    });
+    return transactions.filter((t) => monthKey(t.approved_at) === selectedMonth);
   }, [transactions, selectedMonth]);
 
   // 외화는 환율로 원화 환산해 합산

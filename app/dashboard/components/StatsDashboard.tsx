@@ -6,7 +6,7 @@ import {
   TrendingUp, Calendar, Store, CreditCard, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import type { Transaction } from '@/types';
-import { formatAmount } from '@/lib/utils';
+import { formatAmount, seoulDateParts } from '@/lib/utils';
 import type { MonthlyData } from './MonthlyBarChart';
 import type { MerchantSlice } from './MerchantPieChart';
 
@@ -59,21 +59,24 @@ function toKRW(amount: number, currency: string, rates: Record<string, number>):
 }
 
 export function StatsDashboard({ transactions, exchangeRates }: Props) {
+  // 현재 시각도 KST 기준으로
+  const nowSeoul = seoulDateParts(new Date().toISOString());
+
   const availableYears = useMemo(() => {
     const years = Array.from(
-      new Set(transactions.map((t) => new Date(t.approved_at).getFullYear()))
+      new Set(transactions.map((t) => seoulDateParts(t.approved_at).year))
     ).sort((a, b) => b - a);
-    if (years.length === 0) years.push(new Date().getFullYear());
+    if (years.length === 0) years.push(nowSeoul.year);
     return years;
-  }, [transactions]);
+  }, [transactions, nowSeoul.year]);
 
   const [yearIdx, setYearIdx] = useState(0);
-  const selectedYear = availableYears[yearIdx] ?? new Date().getFullYear();
+  const selectedYear = availableYears[yearIdx] ?? nowSeoul.year;
 
   const yearTx = useMemo(
     () =>
       transactions.filter(
-        (t) => new Date(t.approved_at).getFullYear() === selectedYear
+        (t) => seoulDateParts(t.approved_at).year === selectedYear
       ),
     [transactions, selectedYear]
   );
@@ -86,7 +89,7 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
       count: 0,
     }));
     yearTx.forEach((t) => {
-      const m = new Date(t.approved_at).getMonth();
+      const m = seoulDateParts(t.approved_at).month - 1;
       months[m].total += toKRW(t.amount, t.currency, exchangeRates);
       months[m].count += 1;
     });
@@ -141,18 +144,17 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
   // ── 요약 통계 (KRW 환산)
   const { yearTotal, currentMonthTotal, monthlyAvg, topMerchant } = useMemo(() => {
     const yearTotal = yearTx.reduce((s, t) => s + toKRW(t.amount, t.currency, exchangeRates), 0);
-    const now = new Date();
     const currentMonthTotal =
-      selectedYear === now.getFullYear()
+      selectedYear === nowSeoul.year
         ? yearTx
-            .filter((t) => new Date(t.approved_at).getMonth() === now.getMonth())
+            .filter((t) => seoulDateParts(t.approved_at).month === nowSeoul.month)
             .reduce((s, t) => s + toKRW(t.amount, t.currency, exchangeRates), 0)
         : 0;
     const activeMonths = monthlyData.filter((m) => m.total > 0).length;
     const monthlyAvg = activeMonths > 0 ? yearTotal / activeMonths : 0;
     const topMerchant = merchantData[0]?.name ?? '-';
     return { yearTotal, currentMonthTotal, monthlyAvg, topMerchant };
-  }, [yearTx, selectedYear, monthlyData, merchantData, exchangeRates]);
+  }, [yearTx, selectedYear, monthlyData, merchantData, exchangeRates, nowSeoul.year, nowSeoul.month]);
 
   const rateNote = useMemo(() => {
     const entries = Object.entries(exchangeRates);

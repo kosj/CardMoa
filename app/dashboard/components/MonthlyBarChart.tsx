@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { formatAmount } from '@/lib/utils';
+import { formatAmount, seoulDateParts } from '@/lib/utils';
 
 export interface MonthlyData {
   month: string;
@@ -23,7 +23,8 @@ interface Props {
   year: number;
 }
 
-const CURRENT_MONTH = new Date().getMonth(); // 0-indexed
+const NOW_SEOUL = seoulDateParts(new Date().toISOString());
+const CURRENT_MONTH = NOW_SEOUL.month - 1; // 0-indexed, KST 기준
 
 function CustomTooltip({
   active,
@@ -46,7 +47,7 @@ function CustomTooltip({
 }
 
 export function MonthlyBarChart({ data, year }: Props) {
-  const thisYear = new Date().getFullYear();
+  const thisYear = NOW_SEOUL.year;
 
   return (
     <ResponsiveContainer width="100%" height={240}>
