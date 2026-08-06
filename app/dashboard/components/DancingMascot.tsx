@@ -3,7 +3,7 @@
 import type { SpendingMood } from '@/lib/spending-review';
 
 /**
- * 지출 코치 캐릭터 "모아".
+ * 지출 코치 캐릭터 "미쿠".
  * 외부 3D 에셋 없이 SVG + CSS 3D 트랜스폼(perspective/rotateY)으로
  * 좌우로 돌며 춤추는 모습을 만든다. 표정은 이번 달 지출 평가에 따라 바뀐다.
  */

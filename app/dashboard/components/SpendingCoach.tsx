@@ -91,7 +91,7 @@ export function SpendingCoach({ transactions, exchangeRates }: Props) {
     >
       <div className="flex items-center gap-1.5 mb-3">
         <Sparkles className="h-4 w-4 text-teal-400" />
-        <h3 className="text-sm font-bold text-gray-800">모아의 이번 달 평가</h3>
+        <h3 className="text-sm font-bold text-gray-800">미쿠의 이번 달 평가</h3>
       </div>
 
       <div className="flex flex-col sm:flex-row-reverse items-center gap-3 sm:gap-6">
