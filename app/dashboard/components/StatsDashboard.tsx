@@ -6,7 +6,7 @@ import {
   TrendingUp, Calendar, Store, CreditCard, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import type { Transaction } from '@/types';
-import { formatAmount, seoulDateParts } from '@/lib/utils';
+import { formatAmount, seoulDateParts, toKRW } from '@/lib/utils';
 import type { MonthlyData } from './MonthlyBarChart';
 import type { MerchantSlice } from './MerchantPieChart';
 
@@ -51,11 +51,6 @@ const CARD_COLOR: Record<string, string> = {
 interface Props {
   transactions: Transaction[];
   exchangeRates: Record<string, number>;
-}
-
-function toKRW(amount: number, currency: string, rates: Record<string, number>): number {
-  if (currency === 'KRW') return amount;
-  return Math.round(amount * (rates[currency] ?? 1));
 }
 
 export function StatsDashboard({ transactions, exchangeRates }: Props) {

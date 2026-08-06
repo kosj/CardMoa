@@ -20,6 +20,16 @@ export function formatAmount(amount: number, currency = 'KRW'): string {
   return `${currency} ${formatted}`;
 }
 
+/** 외화 금액을 환율표로 원화 환산 (환율이 없으면 1:1로 취급) */
+export function toKRW(
+  amount: number,
+  currency: string,
+  rates: Record<string, number>
+): number {
+  if (currency === 'KRW') return amount;
+  return Math.round(amount * (rates[currency] ?? 1));
+}
+
 /** 날짜 문자열을 한국 시간(KST) 기준 연/월/일로 분해 (month는 1-12) */
 export function seoulDateParts(dateStr: string): {
   year: number;
