@@ -37,7 +37,7 @@ export function PaymentTextParser() {
         </h2>
       </div>
       <p className="text-sm text-gray-500 mb-4">
-        신한카드 또는 롯데카드 결제 알림 문자를 아래에 붙여넣으세요.
+        신한 SOL트래블(해외), 롯데 트립투로카(해외·국내) 결제 알림을 아래에 붙여넣으세요.
         여러 건을 한꺼번에 입력해도 됩니다.
       </p>
 
@@ -48,7 +48,7 @@ export function PaymentTextParser() {
         rows={7}
         disabled={isPending}
         placeholder={
-          '[신한카드] 6/11 14:30 스타벅스커피 5,500원 승인\n\n[롯데카드] 6/11 18:22 이마트 32,400원 승인\n\n여러 건을 한번에 붙여넣을 수 있습니다.'
+          '(주)아트박스 서울대입구점\n3,800원 승인\n고*종 트립투로카(6*2*)\n일시불, 07/31 19:55\n누적금액 923,665원\n\nSOL트래블해외승인 06/13 06:24\nJPY 570 잔액JPY59,050 (JP)MCDONALD S'
         }
         className="w-full rounded-2xl border border-rose-100 bg-rose-50/40 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 font-mono leading-relaxed focus:border-rose-300 focus:bg-white focus:outline-none focus:ring-1 focus:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-60 resize-none transition-colors"
       />
@@ -108,7 +108,7 @@ function ResultBanner({ result }: { result: ParseActionResult }) {
     return (
       <div className="mt-4 flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
         <Info className="h-4 w-4 mt-0.5 shrink-0 text-yellow-600" />
-        <span>인식된 해외 결제 패턴이 없습니다. 신한 SOL트래블 또는 롯데 트립투로카 알림을 붙여넣어주세요.</span>
+        <span>인식된 결제 패턴이 없습니다. 신한 SOL트래블(해외) 또는 롯데 트립투로카(해외·국내) 알림을 붙여넣어주세요.</span>
       </div>
     );
   }
