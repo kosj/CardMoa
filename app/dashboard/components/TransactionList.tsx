@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Heart, ReceiptText, ChevronLeft, ChevronRight } from 'lucide-react';
-import { formatAmount, formatDate, seoulDateParts } from '@/lib/utils';
+import { formatAmount, formatDate, seoulDateParts, toKRW } from '@/lib/utils';
 import type { Transaction, CardCompany } from '@/types';
 
 const CARD_BADGE: Record<CardCompany, string> = {
@@ -29,11 +29,6 @@ const CURRENCY_BADGE: Record<string, string> = {
 interface Props {
   transactions: Transaction[];
   exchangeRates?: Record<string, number>;
-}
-
-function toKRW(amount: number, currency: string, rates: Record<string, number>): number {
-  if (currency === 'KRW') return amount;
-  return Math.round(amount * (rates[currency] ?? 1));
 }
 
 export function TransactionList({ transactions, exchangeRates = {} }: Props) {

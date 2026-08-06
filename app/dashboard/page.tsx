@@ -1,6 +1,7 @@
 import { getExchangeRates } from '@/lib/exchange';
 import { getTransactions } from '@/lib/transactions';
 import { PaymentTextParser } from './components/PaymentTextParser';
+import { SpendingCoach } from './components/SpendingCoach';
 import { StatsDashboard } from './components/StatsDashboard';
 import { TuitionForm } from './components/TuitionForm';
 
@@ -14,6 +15,9 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8 space-y-6">
+      {/* 지출 코치 캐릭터 */}
+      <SpendingCoach transactions={tx} exchangeRates={exchangeRates} />
+
       {/* 통계 */}
       <StatsDashboard transactions={tx} exchangeRates={exchangeRates} />
 
