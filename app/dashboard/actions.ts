@@ -9,31 +9,46 @@ export interface ParseActionResult {
   success: boolean;
   inserted: number;
   skipped: number;
+  /** '국내 결제 포함'이 꺼져 있어 저장하지 않은 원화 결제 건수 */
+  excludedDomestic: number;
   error?: string;
 }
 
+const fail = (error: string): ParseActionResult => ({
+  success: false,
+  inserted: 0,
+  skipped: 0,
+  excludedDomestic: 0,
+  error,
+});
+
 export async function parseAndSavePaymentText(
-  text: string
+  text: string,
+  includeDomestic = true
 ): Promise<ParseActionResult> {
   // ① 고정 계정 확인
   const userId = await getAppUserId();
   if (!userId) {
-    return { success: false, inserted: 0, skipped: 0, error: '사용자를 찾을 수 없습니다.' };
+    return fail('사용자를 찾을 수 없습니다.');
   }
 
   // ② 입력값 검증
   if (typeof text !== 'string' || text.trim().length === 0) {
-    return { success: false, inserted: 0, skipped: 0, error: '텍스트를 입력해주세요.' };
+    return fail('텍스트를 입력해주세요.');
   }
   if (text.length > 5000) {
-    return { success: false, inserted: 0, skipped: 0, error: '텍스트가 너무 깁니다. (최대 5,000자)' };
+    return fail('텍스트가 너무 깁니다. (최대 5,000자)');
   }
 
-  // ③ 패턴 파싱
-  const candidates = parsePaymentText(text.trim());
+  // ③ 패턴 파싱 — 국내(원화) 건은 체크박스 설정에 따라 제외
+  const parsed = parsePaymentText(text.trim());
+  const candidates = includeDomestic
+    ? parsed
+    : parsed.filter((t) => t.currency !== 'KRW');
+  const excludedDomestic = parsed.length - candidates.length;
 
   if (candidates.length === 0) {
-    return { success: true, inserted: 0, skipped: 0 };
+    return { success: true, inserted: 0, skipped: 0, excludedDomestic };
   }
 
   // ④ 중복 필터링 — upsert + ignoreDuplicates (DB 유니크 제약과 함께 동작)
@@ -50,7 +65,7 @@ export async function parseAndSavePaymentText(
 
   if (dbError) {
     console.error('[action] DB upsert error:', dbError);
-    return { success: false, inserted: 0, skipped: 0, error: '저장 중 오류가 발생했습니다.' };
+    return fail('저장 중 오류가 발생했습니다.');
   }
 
   const insertedCount = inserted?.length ?? 0;
@@ -58,7 +73,12 @@ export async function parseAndSavePaymentText(
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/transactions');
-  return { success: true, inserted: insertedCount, skipped: skippedCount };
+  return {
+    success: true,
+    inserted: insertedCount,
+    skipped: skippedCount,
+    excludedDomestic,
+  };
 }
 
 export interface TuitionActionResult {
