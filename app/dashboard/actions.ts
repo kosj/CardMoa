@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAppUserId } from '@/lib/app-user';
-import { parsePaymentText } from '@/lib/parser';
+import { applyDomesticSetting, parsePaymentText } from '@/lib/parser';
+import { getIncludeDomestic, setIncludeDomestic } from '@/lib/settings';
 
 export interface ParseActionResult {
   success: boolean;
@@ -23,8 +24,7 @@ const fail = (error: string): ParseActionResult => ({
 });
 
 export async function parseAndSavePaymentText(
-  text: string,
-  includeDomestic = true
+  text: string
 ): Promise<ParseActionResult> {
   // ① 고정 계정 확인
   const userId = await getAppUserId();
@@ -40,11 +40,10 @@ export async function parseAndSavePaymentText(
     return fail('텍스트가 너무 깁니다. (최대 5,000자)');
   }
 
-  // ③ 패턴 파싱 — 국내(원화) 건은 체크박스 설정에 따라 제외
+  // ③ 패턴 파싱 — 국내(원화) 건은 저장된 설정에 따라 제외
+  const includeDomestic = await getIncludeDomestic(userId);
   const parsed = parsePaymentText(text.trim());
-  const candidates = includeDomestic
-    ? parsed
-    : parsed.filter((t) => t.currency !== 'KRW');
+  const candidates = applyDomesticSetting(parsed, includeDomestic);
   const excludedDomestic = parsed.length - candidates.length;
 
   if (candidates.length === 0) {
@@ -127,6 +126,67 @@ export async function addTuition(input: {
   if (dbError) {
     console.error('[action] tuition insert error:', dbError);
     return { success: false, error: '저장 중 오류가 발생했습니다.' };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/transactions');
+  return { success: true };
+}
+
+export interface SettingActionResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * '국내(원화) 결제 포함' 설정을 저장한다.
+ * 붙여넣기 UI와 웹훅이 함께 참조하므로 브라우저가 아닌 DB에 둔다.
+ */
+export async function updateIncludeDomestic(
+  value: boolean
+): Promise<SettingActionResult> {
+  const userId = await getAppUserId();
+  if (!userId) {
+    return { success: false, error: '사용자를 찾을 수 없습니다.' };
+  }
+
+  const saved = await setIncludeDomestic(userId, value);
+  if (!saved) {
+    return {
+      success: false,
+      error: '설정을 저장하지 못했습니다. (마이그레이션 005 실행 여부를 확인해주세요)',
+    };
+  }
+
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** 잘못 등록된 결제 내역 1건을 삭제한다. */
+export async function deleteTransaction(
+  id: string
+): Promise<SettingActionResult> {
+  const userId = await getAppUserId();
+  if (!userId) {
+    return { success: false, error: '사용자를 찾을 수 없습니다.' };
+  }
+  if (typeof id !== 'string' || !UUID_REGEX.test(id)) {
+    return { success: false, error: '잘못된 요청입니다.' };
+  }
+
+  const admin = createAdminClient();
+  const { error: dbError } = await admin
+    .from('transactions')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (dbError) {
+    console.error('[action] transaction delete error:', dbError);
+    return { success: false, error: '삭제 중 오류가 발생했습니다.' };
   }
 
   revalidatePath('/dashboard');

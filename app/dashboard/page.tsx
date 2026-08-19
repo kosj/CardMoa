@@ -1,4 +1,5 @@
 import { getExchangeRates } from '@/lib/exchange';
+import { getAppIncludeDomestic } from '@/lib/settings';
 import { getTransactions } from '@/lib/transactions';
 import { PaymentTextParser } from './components/PaymentTextParser';
 import { SpendingCoach } from './components/SpendingCoach';
@@ -8,9 +9,10 @@ import { TuitionForm } from './components/TuitionForm';
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-  const [tx, exchangeRates] = await Promise.all([
+  const [tx, exchangeRates, includeDomestic] = await Promise.all([
     getTransactions(1000),
     getExchangeRates(),
+    getAppIncludeDomestic(),
   ]);
 
   return (
@@ -25,7 +27,7 @@ export default async function DashboardPage() {
       <TuitionForm />
 
       {/* 결제 알림 붙여넣기 */}
-      <PaymentTextParser />
+      <PaymentTextParser includeDomestic={includeDomestic} />
     </main>
   );
 }

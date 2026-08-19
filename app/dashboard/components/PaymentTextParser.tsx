@@ -1,27 +1,38 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { ClipboardPaste, Loader2, CheckCircle, AlertCircle, Info } from 'lucide-react';
-import { parseAndSavePaymentText, type ParseActionResult } from '../actions';
+import {
+  parseAndSavePaymentText,
+  updateIncludeDomestic,
+  type ParseActionResult,
+} from '../actions';
 
-/** '국내 결제 포함' 체크 상태를 브라우저에 기억시키는 키 */
-const INCLUDE_DOMESTIC_KEY = 'cardmoa:include-domestic';
+interface Props {
+  /** 서버에 저장된 '국내(원화) 결제 포함' 설정 */
+  includeDomestic: boolean;
+}
 
-export function PaymentTextParser() {
+export function PaymentTextParser({ includeDomestic }: Props) {
   const [text, setText] = useState('');
   const [result, setResult] = useState<ParseActionResult | null>(null);
-  const [includeDomestic, setIncludeDomestic] = useState(true);
+  // 서버 설정을 낙관적으로 반영하고, 저장 실패 시 되돌린다
+  const [domestic, setDomestic] = useState(includeDomestic);
+  const [settingError, setSettingError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // 저장해 둔 체크 상태 복원 (SSR 불일치를 피하려고 마운트 후에 읽는다)
-  useEffect(() => {
-    const saved = window.localStorage.getItem(INCLUDE_DOMESTIC_KEY);
-    if (saved !== null) setIncludeDomestic(saved === 'true');
-  }, []);
-
   const handleToggleDomestic = (next: boolean) => {
-    setIncludeDomestic(next);
-    window.localStorage.setItem(INCLUDE_DOMESTIC_KEY, String(next));
+    const prev = domestic;
+    setDomestic(next);
+    setSettingError(null);
+
+    startTransition(async () => {
+      const res = await updateIncludeDomestic(next);
+      if (!res.success) {
+        setDomestic(prev);
+        setSettingError(res.error ?? '설정을 저장하지 못했습니다.');
+      }
+    });
   };
 
   const handleSubmit = () => {
@@ -29,7 +40,7 @@ export function PaymentTextParser() {
     setResult(null);
 
     startTransition(async () => {
-      const res = await parseAndSavePaymentText(text, includeDomestic);
+      const res = await parseAndSavePaymentText(text);
       setResult(res);
       if (res.success && res.inserted > 0) {
         setText('');
@@ -71,7 +82,7 @@ export function PaymentTextParser() {
       <label className="mt-4 flex items-start gap-2.5 cursor-pointer select-none">
         <input
           type="checkbox"
-          checked={includeDomestic}
+          checked={domestic}
           onChange={(e) => handleToggleDomestic(e.target.checked)}
           disabled={isPending}
           className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-rose-200 accent-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
@@ -79,8 +90,11 @@ export function PaymentTextParser() {
         <span className="text-sm text-gray-600">
           국내(원화) 결제도 지출에 포함
           <span className="block text-xs text-gray-400">
-            체크를 해제하면 해외 결제만 저장하고, 국내 결제 알림은 건너뜁니다.
+            붙여넣기와 자동 알림(웹훅) 모두에 적용됩니다. 해제하면 해외 결제만 저장합니다.
           </span>
+          {settingError && (
+            <span className="block text-xs text-red-500">{settingError}</span>
+          )}
         </span>
       </label>
 
