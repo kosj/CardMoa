@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { parsePaymentText } from '@/lib/parser';
+import { applyDomesticSetting, parsePaymentText } from '@/lib/parser';
+import { getIncludeDomestic } from '@/lib/settings';
 import type { WebhookRequestBody, WebhookResponse } from '@/types';
 
 export const runtime = 'nodejs';
@@ -67,11 +68,20 @@ export async function POST(
     );
   }
 
-  // ④ 패턴 파싱
-  const transactions = parsePaymentText(text.trim());
+  // ④ 패턴 파싱 — 국내(원화) 건은 저장된 설정에 따라 제외
+  const includeDomestic = await getIncludeDomestic(userId);
+  const parsed = parsePaymentText(text.trim());
+  const transactions = applyDomesticSetting(parsed, includeDomestic);
+  const excludedDomestic = parsed.length - transactions.length;
 
   if (transactions.length === 0) {
-    return NextResponse.json({ success: true, inserted: 0, skipped: 0, transactions: [] });
+    return NextResponse.json({
+      success: true,
+      inserted: 0,
+      skipped: 0,
+      excludedDomestic,
+      transactions: [],
+    });
   }
 
   // ⑤ upsert (중복 무시) — FK 제약이 유효하지 않은 userId를 거부
@@ -107,6 +117,7 @@ export async function POST(
       success: true,
       inserted: insertedCount,
       skipped: skippedCount,
+      excludedDomestic,
       transactions,
     });
   } catch (err) {

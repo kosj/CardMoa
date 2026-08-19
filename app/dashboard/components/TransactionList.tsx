@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Heart, ReceiptText, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useMemo, useTransition } from 'react';
+import { Heart, ReceiptText, ChevronLeft, ChevronRight, Trash2, Loader2 } from 'lucide-react';
 import { formatAmount, formatDate, seoulDateParts, toKRW } from '@/lib/utils';
+import { deleteTransaction } from '../actions';
 import type { Transaction, CardCompany } from '@/types';
 
 const CARD_BADGE: Record<CardCompany, string> = {
@@ -46,6 +47,27 @@ export function TransactionList({ transactions, exchangeRates = {} }: Props) {
 
   const [monthIdx, setMonthIdx] = useState(0);
   const selectedMonth = months[monthIdx];
+
+  // 잘못 등록된 내역 삭제
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+
+  const handleDelete = (t: Transaction) => {
+    if (deletingId) return;
+    const ok = window.confirm(
+      `${t.merchant} ${formatAmount(t.amount, t.currency ?? 'KRW')}\n이 내역을 삭제할까요?`
+    );
+    if (!ok) return;
+
+    setDeletingId(t.id);
+    setDeleteError(null);
+    startTransition(async () => {
+      const res = await deleteTransaction(t.id);
+      if (!res.success) setDeleteError(res.error ?? '삭제하지 못했습니다.');
+      setDeletingId(null);
+    });
+  };
 
   const filtered = useMemo(() => {
     if (!selectedMonth) return [];
@@ -146,22 +168,43 @@ export function TransactionList({ transactions, exchangeRates = {} }: Props) {
                 <p className="font-medium text-gray-800 truncate">{t.merchant}</p>
               </div>
 
-              {/* 오른쪽: 금액 */}
-              <div className="shrink-0 text-right">
-                <p className="font-bold text-gray-900 tabular-nums whitespace-nowrap">
-                  {formatAmount(t.amount, t.currency ?? 'KRW')}
-                </p>
-                <span
-                  className={`mt-0.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-                    CURRENCY_BADGE[t.currency] ?? CURRENCY_BADGE.KRW
-                  }`}
+              {/* 오른쪽: 금액 + 삭제 */}
+              <div className="flex shrink-0 items-center gap-2">
+                <div className="text-right">
+                  <p className="font-bold text-gray-900 tabular-nums whitespace-nowrap">
+                    {formatAmount(t.amount, t.currency ?? 'KRW')}
+                  </p>
+                  <span
+                    className={`mt-0.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                      CURRENCY_BADGE[t.currency] ?? CURRENCY_BADGE.KRW
+                    }`}
+                  >
+                    {t.currency ?? 'KRW'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(t)}
+                  disabled={deletingId !== null}
+                  aria-label={`${t.merchant} 내역 삭제`}
+                  className="rounded-full p-1.5 text-gray-300 hover:bg-rose-50 hover:text-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
                 >
-                  {t.currency ?? 'KRW'}
-                </span>
+                  {deletingId === t.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </button>
               </div>
             </li>
           ))}
         </ul>
+      )}
+
+      {deleteError && (
+        <p className="px-5 sm:px-6 py-3 text-sm text-red-600 bg-red-50 border-t border-red-100">
+          {deleteError}
+        </p>
       )}
     </section>
   );

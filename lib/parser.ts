@@ -112,6 +112,22 @@ function parseLotteKRW(text: string): ParsedTransaction[] {
   return results;
 }
 
+/** 국내(원화) 결제 여부 — 국내 패턴만 KRW로 파싱된다 */
+export function isDomestic(t: ParsedTransaction): boolean {
+  return t.currency === 'KRW';
+}
+
+/**
+ * '국내(원화) 결제 포함' 설정을 파싱 결과에 적용한다.
+ * 붙여넣기 UI·웹훅이 모두 이 함수를 거쳐 같은 규칙을 따르게 한다.
+ */
+export function applyDomesticSetting(
+  transactions: ParsedTransaction[],
+  includeDomestic: boolean
+): ParsedTransaction[] {
+  return includeDomestic ? transactions : transactions.filter((t) => !isDomestic(t));
+}
+
 /**
  * 텍스트에서 결제 내역 파싱 (신한 해외 · 롯데 해외 · 롯데 국내 패턴)
  * - amount ≤ 0인 가승인 건은 자동 제외
