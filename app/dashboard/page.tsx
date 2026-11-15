@@ -43,7 +43,7 @@ export default async function DashboardPage() {
       <AbroadBanner info={abroad} todayKey={todayKey} />
 
       {/* 아빠가 보낸 쪽지 — 대시보드에서 가장 먼저 보이는 자리 */}
-      <DadLetterSection />
+      <DadLetterSection memories={memories} />
 
       {/* 미쿠의 이번 달 안부 — 미쿠를 누르면 (가족이 고른 사진이 있을 때만) 카드가 뒤집힌다 */}
       <SpendingCoach
