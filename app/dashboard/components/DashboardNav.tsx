@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { LayoutDashboard, CalendarRange } from 'lucide-react';
+import { LayoutDashboard, CalendarRange, Images } from 'lucide-react';
 import './dash-motion.css';
 
 const TABS = [
   { href: '/dashboard', label: '이번 달', icon: LayoutDashboard },
   { href: '/dashboard/transactions', label: '생활 기록', icon: CalendarRange },
+  { href: '/dashboard/memories', label: '우리 이야기', icon: Images },
 ];
 
 /** 밑줄을 탭 양 끝에서 살짝 안쪽으로 (px) — 정적 밑줄의 inset-x-2와 같아야 한다 */
@@ -71,7 +72,7 @@ export function DashboardNav() {
                 tabRefs.current[i] = el;
               }}
               aria-current={active ? 'page' : undefined}
-              className={`relative inline-flex items-center gap-1.5 px-3 py-3 text-sm font-semibold transition-colors duration-base ease-soft ${
+              className={`relative inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 sm:px-3 py-3 text-sm font-semibold transition-colors duration-base ease-soft ${
                 active ? 'text-rose-500' : 'text-gray-400 hover:text-rose-400'
               }`}
             >

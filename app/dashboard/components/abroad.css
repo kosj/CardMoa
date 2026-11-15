@@ -1,0 +1,56 @@
+/* ──────────────────────────────────────────────
+   바다 건너 D-day 배너 — 집에서 머무는 도시로 종이비행기가 한 번 날아간다.
+   비행은 SVG animateMotion(1회), 여기서는 도착 표시만 담당.
+   ────────────────────────────────────────────── */
+
+.abroad-route {
+  overflow: visible;
+}
+
+.abroad-arc {
+  stroke-dasharray: 3 5;
+}
+
+/* 비행기가 도착한 뒤 도시 점이 한 번 '톡' */
+.abroad-city-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: abroad-arrive var(--dur-slow) var(--ease-bounce) 2.9s 1 both;
+}
+
+@keyframes abroad-arrive {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.7);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.abroad-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: abroad-ring 900ms var(--ease-soft) 2.9s 1 both;
+}
+
+@keyframes abroad-ring {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .abroad-city-dot,
+  .abroad-ring {
+    animation: none;
+  }
+}

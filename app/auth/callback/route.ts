@@ -1,3 +1,4 @@
+import { safeNextPath } from '@/lib/family-gate';
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse, type NextRequest } from 'next/server';
 
@@ -5,7 +6,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
+  // 외부 주소로 튀지 않도록 노트 안쪽(/dashboard…) 경로만 허용
+  const next = safeNextPath(searchParams.get('next'));
 
   if (code) {
     const supabase = createClient();

@@ -1,5 +1,6 @@
 'use server';
 
+import { assertFamilyAccess } from '@/lib/family-gate';
 import { revalidatePath } from 'next/cache';
 import { getAppUserId } from '@/lib/app-user';
 import { createLetter, markLetterOpened, type Letter } from '@/lib/letters';
@@ -22,6 +23,7 @@ const UUID_REGEX =
 
 /** 아빠의 쪽지를 저장한다. (1~500자) */
 export async function sendLetter(body: string): Promise<SendLetterResult> {
+  await assertFamilyAccess();
   if (typeof body !== 'string') {
     return { success: false, error: '쪽지 내용을 입력해주세요.' };
   }
@@ -58,6 +60,7 @@ export async function sendLetter(body: string): Promise<SendLetterResult> {
 
 /** 쪽지를 처음 연 시각을 기록한다. 화면 갱신은 필요 없다. */
 export async function openLetter(id: string): Promise<OpenLetterResult> {
+  await assertFamilyAccess();
   if (typeof id !== 'string' || !UUID_REGEX.test(id)) {
     return { success: false, error: '잘못된 요청입니다.' };
   }

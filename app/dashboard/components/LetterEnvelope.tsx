@@ -9,23 +9,12 @@ import {
   type AnimationEvent,
   type CSSProperties,
 } from 'react';
-import { Nanum_Pen_Script } from 'next/font/google';
+import { handwriting as pen } from '@/app/fonts';
 import type { Letter } from '@/lib/letters';
 import { useReducedMotion } from '@/app/components/motion';
 import './letter.css';
 
-/**
- * 손글씨 폰트 — 편지 본문과 서명("— 아빠가")에만 쓴다.
- * 한글 글리프는 unicode-range로 잘게 나뉘어 있어 미리 불러오지 않는다(preload: false).
- */
-const pen = Nanum_Pen_Script({
-  weight: '400',
-  subsets: ['latin'],
-  display: 'swap',
-  preload: false,
-  adjustFontFallback: false,
-  fallback: ['cursive'],
-});
+/* 손글씨 폰트(편지 본문·서명)는 사진 캡션과 같은 인스턴스를 쓴다 — app/fonts.ts */
 
 /* ── 날짜 표기 (서버·브라우저가 같은 결과를 내도록 시간대를 고정) ── */
 
@@ -378,6 +367,7 @@ export function LetterEnvelope({
                   <span className="letter-env-label">
                     <span className="letter-env-to">To. 은별</span>
                     <span className="letter-env-date">{formatDotDate(letter.created_at)}</span>
+                    <span className="letter-env-airmail">✈ 항공 우편</span>
                   </span>
                 </span>
               </button>

@@ -1,10 +1,16 @@
 'use server';
 
+import { assertFamilyAccess } from '@/lib/family-gate';
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAppUserId } from '@/lib/app-user';
 import { applyDomesticSetting, parsePaymentText } from '@/lib/parser';
-import { getIncludeDomestic, setIncludeDomestic } from '@/lib/settings';
+import {
+  getIncludeDomestic,
+  setAbroadInfo,
+  setIncludeDomestic,
+  type AbroadInfo,
+} from '@/lib/settings';
 
 export interface ParseActionResult {
   success: boolean;
@@ -26,6 +32,7 @@ const fail = (error: string): ParseActionResult => ({
 export async function parseAndSavePaymentText(
   text: string
 ): Promise<ParseActionResult> {
+  await assertFamilyAccess();
   // ① 고정 계정 확인
   const userId = await getAppUserId();
   if (!userId) {
@@ -94,6 +101,7 @@ export async function addTuition(input: {
   date: string; // YYYY-MM-DD
   note?: string;
 }): Promise<TuitionActionResult> {
+  await assertFamilyAccess();
   const userId = await getAppUserId();
   if (!userId) {
     return { success: false, error: '사용자를 찾을 수 없습니다.' };
@@ -145,6 +153,7 @@ export interface SettingActionResult {
 export async function updateIncludeDomestic(
   value: boolean
 ): Promise<SettingActionResult> {
+  await assertFamilyAccess();
   const userId = await getAppUserId();
   if (!userId) {
     return { success: false, error: '사용자를 찾을 수 없습니다.' };
@@ -169,6 +178,7 @@ const UUID_REGEX =
 export async function deleteTransaction(
   id: string
 ): Promise<SettingActionResult> {
+  await assertFamilyAccess();
   const userId = await getAppUserId();
   if (!userId) {
     return { success: false, error: '사용자를 찾을 수 없습니다.' };
@@ -191,5 +201,58 @@ export async function deleteTransaction(
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/transactions');
+  return { success: true };
+}
+
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+function normalizeDate(value: unknown): string | null | 'invalid' {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value !== 'string' || !DATE_REGEX.test(value)) return 'invalid';
+  const d = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return 'invalid';
+  // 입력한 날짜가 실제 달력에 있는 날인지 (예: 2월 30일 거부)
+  return d.toISOString().slice(0, 10) === value ? value : 'invalid';
+}
+
+/**
+ * '바다 건너 D-day' 설정 저장 — 머무는 도시, 떠난 날, 다음 만남.
+ * 빈 값은 '설정 안 함'으로 저장한다.
+ */
+export async function updateAbroadInfo(input: {
+  city: string;
+  since: string;
+  nextVisit: string;
+}): Promise<SettingActionResult> {
+  await assertFamilyAccess();
+  const userId = await getAppUserId();
+  if (!userId) {
+    return { success: false, error: '사용자를 찾을 수 없습니다.' };
+  }
+
+  const city = typeof input?.city === 'string' ? input.city.trim() : '';
+  if (city.length > 20) {
+    return { success: false, error: '도시 이름은 20자까지 쓸 수 있어요.' };
+  }
+
+  const since = normalizeDate(input?.since);
+  const nextVisit = normalizeDate(input?.nextVisit);
+  if (since === 'invalid' || nextVisit === 'invalid') {
+    return { success: false, error: '날짜를 올바르게 입력해주세요.' };
+  }
+  if (since && nextVisit && nextVisit < since) {
+    return { success: false, error: '다음 만남은 떠난 날 이후로 정해주세요.' };
+  }
+
+  const info: AbroadInfo = { city: city || null, since, nextVisit };
+  const saved = await setAbroadInfo(userId, info);
+  if (!saved) {
+    return {
+      success: false,
+      error: '설정을 저장하지 못했습니다. (마이그레이션 008 실행 여부를 확인해주세요)',
+    };
+  }
+
+  revalidatePath('/dashboard');
   return { success: true };
 }
