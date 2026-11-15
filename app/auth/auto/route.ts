@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/auth/login`);
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
