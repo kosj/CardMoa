@@ -1,5 +1,4 @@
 import { GraduationCap } from 'lucide-react';
-import { APP_USER_EMAIL } from '@/lib/app-user';
 import { DashboardNav } from './components/DashboardNav';
 
 export const dynamic = 'force-dynamic';
@@ -10,16 +9,16 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-rose-50/70 via-pink-50/30 to-white">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-rose-100">
+    <div className="min-h-screen bg-gradient-to-b from-cream-100 via-rose-50/40 to-cream-50">
+      <header className="sticky top-0 z-10 bg-cream-50/85 backdrop-blur border-b border-rose-100/80">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center justify-center w-9 h-9 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-400 shadow-sm shadow-rose-200">
+            <span className="inline-flex items-center justify-center w-9 h-9 rounded-2xl bg-gradient-to-br from-dusk-300 to-rose-400 shadow-sm shadow-rose-200">
               <GraduationCap className="h-5 w-5 text-white" />
             </span>
             <div>
-              <p className="text-base font-bold text-gray-800">고은별 대학생활 가계부</p>
-              <p className="text-xs text-gray-400">{APP_USER_EMAIL}</p>
+              <p className="text-base font-bold text-gray-800">은별이 대학생활 노트</p>
+              <p className="text-xs text-gray-400">아빠가 늘 응원해 💖</p>
             </div>
           </div>
         </div>

@@ -5,9 +5,9 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: '고은별 대학생활 가계부',
+  title: '은별이 대학생활 노트',
   description:
-    '대학생 딸 고은별의 학교생활 지출을 한눈에. 카드 결제와 수업료를 모아 월별로 관리합니다.',
+    '아빠가 은별이의 대학생활을 함께 챙기는 노트. 카드 결제와 수업료를 모아 달마다 생활비를 정리하고, 아빠의 쪽지를 전합니다.',
 };
 
 export default function RootLayout({
