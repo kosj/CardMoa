@@ -121,7 +121,7 @@ export function safeNextPath(raw: unknown): string {
  */
 export async function hasFamilyAccess(): Promise<boolean> {
   const { cookies } = await import('next/headers');
-  return isValidFamilyCookie(cookies().get(FAMILY_COOKIE)?.value);
+  return isValidFamilyCookie((await cookies()).get(FAMILY_COOKIE)?.value);
 }
 
 /**

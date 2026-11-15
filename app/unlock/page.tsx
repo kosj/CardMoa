@@ -26,14 +26,15 @@ const riseDelay = (ms: number) => ({ '--gate-delay': `${ms}ms` }) as CSSProperti
 export default async function UnlockPage({
   searchParams,
 }: {
-  searchParams: { next?: string | string[] };
+  searchParams: Promise<{ next?: string | string[] }>;
 }) {
-  const rawNext = Array.isArray(searchParams.next) ? searchParams.next[0] : searchParams.next;
+  const { next: nextParam } = await searchParams;
+  const rawNext = Array.isArray(nextParam) ? nextParam[0] : nextParam;
   const next = safeNextPath(rawNext);
   const configured = isFamilyGateConfigured();
 
   // 이미 열어 둔 기기라면 바로 노트로
-  if (configured && (await isValidFamilyCookie(cookies().get(FAMILY_COOKIE)?.value))) {
+  if (configured && (await isValidFamilyCookie((await cookies()).get(FAMILY_COOKIE)?.value))) {
     redirect(next);
   }
 

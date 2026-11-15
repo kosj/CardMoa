@@ -2,8 +2,8 @@
 
 /// <reference types="react-dom/canary" />
 
-import { useEffect, useRef, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useEffect, useRef, useState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Eye, EyeOff, Loader2, KeyRound } from 'lucide-react';
 import { unlockAction, type UnlockState } from './actions';
 
@@ -15,7 +15,7 @@ const INITIAL: UnlockState = { error: null, attempt: 0 };
  * - 틀리면 입력칸이 살짝 흔들리고, 입력한 글자를 선택해 바로 다시 쓸 수 있게 한다
  */
 export function UnlockForm({ next }: { next: string }) {
-  const [state, formAction] = useFormState(unlockAction, INITIAL);
+  const [state, formAction] = useActionState(unlockAction, INITIAL);
   const [visible, setVisible] = useState(false);
   const [shaking, setShaking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);

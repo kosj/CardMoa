@@ -1,8 +1,9 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export function createClient() {
-  const cookieStore = cookies();
+// Next.js 15부터 cookies()가 비동기 API — 호출부에서 await createClient() 필요
+export async function createClient() {
+  const cookieStore = await cookies();
 
   // cookieStore.set의 세 번째 인자 타입을 직접 추론 — 외부 타입 import 불필요
   type SetOptions = Parameters<typeof cookieStore.set>[2];

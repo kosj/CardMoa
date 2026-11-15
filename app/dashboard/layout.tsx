@@ -13,7 +13,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   // 미들웨어가 먼저 막지만, 혹시 미들웨어를 건너뛴 요청이 와도 화면은 그리지 않는다 (이중 잠금)
-  if (!(await isValidFamilyCookie(cookies().get(FAMILY_COOKIE)?.value))) {
+  if (!(await isValidFamilyCookie((await cookies()).get(FAMILY_COOKIE)?.value))) {
     redirect('/unlock?next=/dashboard');
   }
 
