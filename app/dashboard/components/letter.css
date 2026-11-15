@@ -226,12 +226,14 @@ section.letter-root {
 
 .letter-paper {
   --lh: 34px;
+  /* 좌우 여백 — 봉투 폭의 7% (사진 자리 계산에도 쓴다) */
+  --paper-pad-x: clamp(18px, calc(var(--env-w) * 0.07), 30px);
   position: absolute;
   left: 4%;
   right: 4%;
   bottom: calc(var(--env-h) * 0.1);
   /* 아래쪽 여백은 봉투 속에 들어가 있는 부분 */
-  padding: 16px clamp(18px, 7%, 30px) calc(var(--env-h) * 0.9 + 6px);
+  padding: 16px var(--paper-pad-x) calc(var(--env-h) * 0.9 + 6px);
   border: 1px solid rgba(241, 211, 168, 0.95);
   border-radius: 12px 12px 6px 6px;
   background-color: #fffbf5;
@@ -243,6 +245,8 @@ section.letter-root {
     rgba(232, 196, 150, 0.5) var(--lh)
   );
   background-position: 0 16px;
+  /* 괘선은 날짜 줄 아래부터 — 반복하면 편지지 높이에 따라 맨 위에 선이 하나 더 비친다 */
+  background-repeat: no-repeat;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 14px 30px -20px rgba(160, 90, 40, 0.55);
@@ -355,6 +359,255 @@ section.letter-root {
   }
 }
 
+/* ── 클립으로 꽂은 사진 (쪽지에 사진 한 장) ──
+   편지지 오른쪽 위 모서리에 작은 폴라로이드가 살짝 기울어 집혀 있다.
+   편지지 윗변에 걸쳐 있고, 글씨는 사진이 덮는 자리만큼 비켜 쓴다(.letter-clip-room). */
+
+.letter-paper {
+  /* 폴라로이드 바깥 폭 · 테두리 · 캡션 띠 */
+  --clip-w: 112px;
+  --clip-pad: 6px;
+  --clip-cap: 26px;
+  /* 편지지 모서리에서 얼마나 삐져나오는지 (음수 = 바깥으로) */
+  --clip-top: -24px;
+  --clip-right: -16px;
+  --clip-r: 4.5deg;
+  --clip-h: calc(var(--clip-w) - var(--clip-pad) + var(--clip-cap));
+}
+/* 좁은 화면: 사진을 줄이고, 글씨 자리를 그만큼 덜 빼앗는다 */
+@container (max-width: 379px) {
+  .letter-paper {
+    --clip-w: 86px;
+    --clip-pad: 5px;
+    --clip-cap: 21px;
+    --clip-top: -14px;
+    --clip-right: -10px;
+    --clip-r: 4deg;
+  }
+}
+
+/* 사진이 덮는 자리 — 본문 첫 두 줄이 이만큼 비켜서 줄 바꿈한다.
+   높이를 줄 간격의 배수로 두고 본문이 감싸게 해서, 한 줄짜리 쪽지여도 서명·괘선이 어긋나지 않는다.
+   (사진 아래 끝은 데스크톱·모바일 모두 본문 둘째 줄 안에서 끝난다) */
+.letter-paper.has-photo .letter-body {
+  display: flow-root;
+}
+.letter-clip-room {
+  float: right;
+  /* 사진 왼쪽 끝 ~ 본문 오른쪽 끝 + 기울기·숨 쉴 틈 */
+  width: calc(var(--clip-w) + var(--clip-right) - var(--paper-pad-x) + 10px);
+  height: calc(var(--lh) * 2);
+}
+/* 날짜 줄의 하트는 사진에 가리지 않도록 날짜 옆으로 */
+.letter-paper.has-photo .letter-paper-head {
+  justify-content: flex-start;
+}
+
+.letter-clip {
+  position: absolute;
+  top: var(--clip-top);
+  right: var(--clip-right);
+  z-index: 2;
+  width: var(--clip-w);
+  transform: rotate(var(--clip-r));
+  transform-origin: 30% 0;
+}
+/* 봉투로 들어갈 때는 사진이 먼저 살짝 사라진다 (봉투 위로 비치지 않게) */
+.letter-stage:not(.is-open) .letter-clip {
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.letter-clip-btn {
+  display: block;
+  width: 100%;
+  padding: var(--clip-pad) var(--clip-pad) 0;
+  border: 0;
+  border-radius: 3px;
+  background: #ffffff;
+  text-align: center;
+  cursor: zoom-in;
+  box-shadow:
+    0 1px 1.5px rgba(120, 82, 44, 0.14),
+    0 10px 18px -10px rgba(120, 82, 44, 0.5);
+  /* 클립을 축으로 살짝 흔들린다 */
+  transform-origin: 30% 4%;
+  transition:
+    transform var(--dur-base) var(--ease-soft),
+    box-shadow var(--dur-base) var(--ease-soft);
+  -webkit-tap-highlight-color: transparent;
+}
+.letter-clip-btn:hover,
+.letter-clip-btn:focus-visible {
+  transform: rotate(-3deg) translateY(1px);
+  box-shadow:
+    0 2px 3px rgba(120, 82, 44, 0.12),
+    0 16px 24px -12px rgba(120, 82, 44, 0.55);
+}
+.letter-clip-btn:focus {
+  outline: none;
+}
+.letter-clip-btn:focus-visible {
+  outline: 2px solid #f39a68; /* dusk-400 */
+  outline-offset: 3px;
+}
+
+.letter-clip-photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 1px;
+  background-color: #fdf4e7; /* cream-100 — 사진이 오기 전 자리 */
+}
+.letter-clip-photo > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 38%;
+}
+/* 인화지 광택 */
+.letter-clip-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 40%);
+  box-shadow: inset 0 0 0 1px rgba(80, 56, 32, 0.06);
+}
+
+.letter-clip-cap {
+  display: block;
+  height: var(--clip-cap);
+  padding: 0 3px;
+  overflow: hidden;
+  font-size: calc(var(--clip-cap) * 0.68);
+  line-height: var(--clip-cap);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #4a3b2e;
+}
+.letter-clip-cap[data-empty='true'] {
+  color: #b08865;
+}
+
+/* 은빛 젬 클립 — 편지지 윗변과 사진을 함께 집는다 */
+.letter-clip-wire {
+  --wire-r: -7deg;
+  position: absolute;
+  top: calc(var(--clip-w) * -0.17);
+  left: 17%;
+  z-index: 1;
+  width: calc(var(--clip-w) * 0.15);
+  height: calc(var(--clip-w) * 0.45);
+  transform: rotate(var(--wire-r));
+  filter: drop-shadow(0.5px 1.5px 0.8px rgba(80, 60, 40, 0.3));
+  pointer-events: none;
+}
+
+/* 편지지가 다 올라온 뒤: 사진이 툭 내려와 자리 잡고 → 클립이 '찰칵' */
+.letter-is-writing .letter-clip {
+  animation: letter-clip-on 700ms var(--ease-soft) var(--cd, 1240ms) both;
+}
+.letter-is-writing .letter-clip-wire {
+  animation: letter-clip-snap 420ms var(--ease-bounce) calc(var(--cd, 1240ms) + 330ms) both;
+}
+@keyframes letter-clip-on {
+  0% {
+    opacity: 0;
+    transform: translate(6px, -26px) rotate(calc(var(--clip-r) + 10deg)) scale(1.06);
+  }
+  35% {
+    opacity: 1;
+  }
+  58% {
+    transform: translate(0, 3px) rotate(calc(var(--clip-r) - 2.2deg)) scale(0.99);
+  }
+  80% {
+    transform: translate(0, -1px) rotate(calc(var(--clip-r) + 0.8deg)) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(var(--clip-r));
+  }
+}
+@keyframes letter-clip-snap {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) rotate(var(--wire-r)) scaleY(1.06);
+  }
+  45% {
+    opacity: 1;
+  }
+  65% {
+    transform: translateY(1.5px) rotate(var(--wire-r)) scaleY(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(var(--wire-r));
+  }
+}
+
+/* 닫힌 봉투 뒤로 삐져나온 사진 모서리 — 봉투 뒷면(z 10)보다 뒤에 있다 */
+.letter-peek {
+  position: absolute;
+  top: calc(var(--env-w) * -0.065);
+  right: 10%;
+  z-index: 5;
+  display: block;
+  width: calc(var(--env-w) * 0.19);
+  padding: 4px 4px 14px;
+  border-radius: 2px;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 0.5px rgba(120, 82, 44, 0.12),
+    0 2px 5px -1px rgba(120, 82, 44, 0.3);
+  transform: rotate(9deg);
+  pointer-events: none;
+  /* 다시 접을 때: 편지지가 들어가고 덮개가 닫힌 뒤 스르륵 올라온다 */
+  transition:
+    transform 480ms var(--ease-soft) 940ms,
+    opacity 280ms ease 940ms,
+    translate var(--dur-base) var(--ease-soft) 0ms;
+}
+.letter-peek-photo {
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background-color: #fdf4e7;
+}
+.letter-peek-photo > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 38%;
+}
+.letter-peek-wire {
+  position: absolute;
+  top: -9px;
+  left: 20%;
+  width: 11px;
+  height: 33px;
+  transform: rotate(-8deg);
+  filter: drop-shadow(0.5px 1px 0.6px rgba(80, 60, 40, 0.28));
+}
+/* 봉투에 손을 대면 사진이 한 뼘 더 고개를 내민다 */
+.letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:hover) .letter-peek,
+.letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:focus-visible) .letter-peek {
+  translate: 0 -5px;
+}
+/* 열면: 사진은 편지지에 꽂혀 나오므로 모서리는 봉투 뒤로 숨는다 */
+.letter-stage.is-open .letter-peek {
+  opacity: 0;
+  transform: translateY(45%) rotate(9deg);
+  transition:
+    transform 260ms ease-in 0ms,
+    opacity 200ms ease-in 0ms,
+    translate var(--dur-base) var(--ease-soft) 0ms;
+}
+
 /* ── 1회성 모션 ── */
 
 /* 안 읽은 쪽지: 처음 보일 때 한 번 '똑똑' */
@@ -432,5 +685,14 @@ section.letter-root {
   .letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:hover),
   .letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:focus-visible) {
     transform: none;
+  }
+  /* 꽂힌 사진·봉투 뒤 모서리도 그 자리에 가만히 */
+  .letter-clip-btn:hover,
+  .letter-clip-btn:focus-visible {
+    transform: none;
+  }
+  .letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:hover) .letter-peek,
+  .letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:focus-visible) .letter-peek {
+    translate: none;
   }
 }
