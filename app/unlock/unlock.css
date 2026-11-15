@@ -1,0 +1,203 @@
+/* ──────────────────────────────────────────────
+   가족 암호 잠금 화면 (prefix: gate-)
+   - 모든 모션은 한 번만: 카드가 내려앉고, 자물쇠가 살랑, 반짝임 한 번
+   - 틀렸을 때만 입력칸이 아주 작게 흔들린다
+   - prefers-reduced-motion이면 전부 정지
+   ────────────────────────────────────────────── */
+
+/* 크림색 종이 위로 아주 옅은 노트 줄 (위쪽 그림·제목 부분은 비워 둔다) */
+.gate-paper {
+  background-image:
+    radial-gradient(120% 50% at 50% 0%, rgba(249, 185, 138, 0.16), transparent 70%),
+    linear-gradient(to bottom, #fffbf5 0, #fffbf5 46%, rgba(255, 251, 245, 0) 62%),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 31px,
+      rgba(241, 211, 168, 0.2) 31px,
+      rgba(241, 211, 168, 0.2) 32px
+    );
+}
+
+.gate-code {
+  border-radius: 0.375rem;
+  background: #fdf4e7;
+  padding: 0.05rem 0.35rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  color: #e77c4d;
+  white-space: nowrap;
+}
+
+/* ── 등장 (한 번만) ───────────────── */
+.gate-card-in {
+  animation: gate-card-in 700ms var(--ease-soft, ease-out) both;
+}
+
+.gate-rise {
+  animation: gate-rise var(--dur-slow, 600ms) var(--ease-soft, ease-out) both;
+  animation-delay: var(--gate-delay, 0ms);
+}
+
+/* 노트가 살짝 위에서 내려앉는다 */
+.gate-diary .gate-anim {
+  transform-box: fill-box;
+}
+
+.gate-diary-body {
+  transform-origin: 50% 100%;
+  animation: gate-diary-in 900ms var(--ease-bounce, ease-out) 120ms both;
+}
+
+.gate-diary-shadow {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: gate-shadow-in 900ms var(--ease-soft, ease-out) 120ms both;
+}
+
+/* 자물쇠는 끈에 매달린 채 한 번 살랑이다 멈춘다 */
+.gate-lock {
+  transform-origin: 50% 0%;
+  animation: gate-lock-swing 1600ms var(--ease-soft, ease-out) 520ms both;
+}
+
+.gate-twinkle {
+  transform-origin: 50% 50%;
+  animation: gate-twinkle 1100ms var(--ease-soft, ease-out) 760ms both;
+}
+.gate-twinkle-late {
+  animation-delay: 980ms;
+}
+
+/* ── 틀렸을 때 ───────────────── */
+.gate-shake {
+  animation: gate-shake 420ms var(--ease-soft, ease-out);
+}
+
+.gate-error-in {
+  animation: gate-error-in var(--dur-base, 320ms) var(--ease-soft, ease-out) both;
+}
+
+@keyframes gate-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes gate-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes gate-diary-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) rotate(-3deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes gate-shadow-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.6);
+  }
+  to {
+    opacity: 0.16;
+    transform: none;
+  }
+}
+
+@keyframes gate-lock-swing {
+  0% {
+    transform: rotate(0deg);
+  }
+  18% {
+    transform: rotate(9deg);
+  }
+  42% {
+    transform: rotate(-6deg);
+  }
+  64% {
+    transform: rotate(3deg);
+  }
+  82% {
+    transform: rotate(-1deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes gate-twinkle {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) rotate(-30deg);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.15) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes gate-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2.5px);
+  }
+  80% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes gate-error-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── 동작 줄이기: 완성된 장면으로 바로 ───────────── */
+@media (prefers-reduced-motion: reduce) {
+  .gate-card-in,
+  .gate-rise,
+  .gate-diary-body,
+  .gate-diary-shadow,
+  .gate-lock,
+  .gate-twinkle,
+  .gate-shake,
+  .gate-error-in {
+    animation: none;
+  }
+}
