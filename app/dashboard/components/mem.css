@@ -1,0 +1,107 @@
+/* ──────────────────────────────────────────────
+   추억 정리하기 — 아빠의 사진 정리 도구 (MemoryManager)
+   기능 위주의 도구라 모션은 담백하게: 펼칠 때 살짝 내려앉는 정도.
+   ────────────────────────────────────────────── */
+
+/* 펼친 내용·새 카드·편집 칸이 살짝 내려앉으며 나타난다 */
+.mem-drop-in {
+  animation: mem-drop-in var(--dur-base, 320ms) var(--ease-soft, ease-out) both;
+}
+@keyframes mem-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 미리보기 썸네일은 준비가 끝나면 부드럽게 */
+.mem-preview {
+  animation: mem-fade-in var(--dur-base, 320ms) var(--ease-soft, ease-out) both;
+}
+@keyframes mem-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 올리는 중 — 서버 액션은 진행률을 알 수 없어서 끝없이 흐르는 막대 */
+.mem-progress {
+  position: relative;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(243 154 104 / 0.18);
+}
+.mem-progress::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f9b98a, #e77c4d);
+  animation: mem-progress 1.2s var(--ease-soft, ease-in-out) infinite;
+}
+@keyframes mem-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(260%);
+  }
+}
+
+/* 완료 체크가 한 번 퐁 */
+.mem-done-pop {
+  animation: mem-pop 420ms var(--ease-bounce, ease-out) both;
+}
+@keyframes mem-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* 지우기 확인 대화상자 */
+.mem-dialog::backdrop {
+  background: rgb(68 44 32 / 0.35);
+  backdrop-filter: blur(2px);
+}
+.mem-dialog[open] {
+  animation: mem-dialog-in var(--dur-base, 320ms) var(--ease-soft, ease-out) both;
+}
+@keyframes mem-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mem-drop-in,
+  .mem-preview,
+  .mem-done-pop,
+  .mem-dialog[open] {
+    animation: none;
+  }
+  /* 흐르는 대신 은은하게 채워진 막대 */
+  .mem-progress::before {
+    animation: none;
+    width: 100%;
+    opacity: 0.55;
+  }
+}
