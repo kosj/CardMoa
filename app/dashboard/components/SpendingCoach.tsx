@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { MessageCircleHeart } from 'lucide-react';
 import type { Transaction } from '@/types';
 import { buildSpendingReview, type SpendingMood } from '@/lib/spending-review';
 import { formatAmount } from '@/lib/utils';
+import { CountUp } from '@/app/components/motion';
 import { DancingMascot } from './DancingMascot';
 
 interface Props {
@@ -12,46 +13,50 @@ interface Props {
   exchangeRates: Record<string, number>;
 }
 
-/** 평가 등급별 말풍선 배색 (Tailwind는 정적 클래스만 인식하므로 전부 문자열로) */
+/**
+ * 안부의 결(mood)에 따른 말풍선 배색 — 모든 말풍선은 크림색 편지지(cream-50) 위에
+ * 결에 맞는 테두리·배지만 바꾼다. 많이 쓴 달도 경고색(빨강) 대신 노을빛 복숭아색.
+ * (Tailwind는 정적 클래스만 인식하므로 전부 문자열로)
+ */
 const THEME: Record<
   SpendingMood,
   { bubble: string; tail: string; badge: string; halo: string }
 > = {
   empty: {
-    bubble: 'border-gray-200 bg-gray-50',
-    tail: 'bg-gray-50 border-gray-200',
-    badge: 'bg-gray-100 text-gray-600',
-    halo: 'from-gray-100/70',
+    bubble: 'border-cream-200 bg-cream-50 shadow-cream-200/60',
+    tail: 'bg-cream-50 border-cream-200',
+    badge: 'bg-cream-100 text-stone-600',
+    halo: 'from-cream-100',
   },
   great: {
-    bubble: 'border-emerald-200 bg-emerald-50',
-    tail: 'bg-emerald-50 border-emerald-200',
-    badge: 'bg-emerald-100 text-emerald-700',
-    halo: 'from-emerald-100/70',
+    bubble: 'border-pink-200 bg-cream-50 shadow-pink-100/70',
+    tail: 'bg-cream-50 border-pink-200',
+    badge: 'bg-pink-100 text-pink-700',
+    halo: 'from-pink-100/70',
   },
   good: {
-    bubble: 'border-teal-200 bg-teal-50',
-    tail: 'bg-teal-50 border-teal-200',
-    badge: 'bg-teal-100 text-teal-700',
-    halo: 'from-teal-100/70',
+    bubble: 'border-emerald-200 bg-cream-50 shadow-emerald-100/70',
+    tail: 'bg-cream-50 border-emerald-200',
+    badge: 'bg-emerald-100 text-emerald-700',
+    halo: 'from-emerald-100/60',
   },
   normal: {
-    bubble: 'border-sky-200 bg-sky-50',
-    tail: 'bg-sky-50 border-sky-200',
-    badge: 'bg-sky-100 text-sky-700',
-    halo: 'from-sky-100/70',
+    bubble: 'border-cream-300 bg-cream-50 shadow-cream-200/70',
+    tail: 'bg-cream-50 border-cream-300',
+    badge: 'bg-cream-200 text-amber-900',
+    halo: 'from-cream-200/70',
   },
   warning: {
-    bubble: 'border-amber-200 bg-amber-50',
-    tail: 'bg-amber-50 border-amber-200',
-    badge: 'bg-amber-100 text-amber-700',
-    halo: 'from-amber-100/70',
+    bubble: 'border-amber-200 bg-cream-50 shadow-amber-100/70',
+    tail: 'bg-cream-50 border-amber-200',
+    badge: 'bg-amber-100 text-amber-800',
+    halo: 'from-amber-100/60',
   },
   alert: {
-    bubble: 'border-rose-200 bg-rose-50',
-    tail: 'bg-rose-50 border-rose-200',
-    badge: 'bg-rose-100 text-rose-700',
-    halo: 'from-rose-100/70',
+    bubble: 'border-dusk-300 bg-cream-50 shadow-orange-100/80',
+    tail: 'bg-cream-50 border-dusk-300',
+    badge: 'bg-orange-100 text-orange-800',
+    halo: 'from-orange-100/70',
   },
 };
 
@@ -87,11 +92,11 @@ export function SpendingCoach({ transactions, exchangeRates }: Props) {
 
   return (
     <section
-      className={`relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br ${theme.halo} via-white to-white shadow-sm shadow-rose-100/40 p-5`}
+      className={`relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br ${theme.halo} via-white to-cream-50/60 shadow-sm shadow-rose-100/40 p-5`}
     >
       <div className="flex items-center gap-1.5 mb-3">
-        <Sparkles className="h-4 w-4 text-teal-400" />
-        <h3 className="text-sm font-bold text-gray-800">미쿠의 이번 달 평가</h3>
+        <MessageCircleHeart className="h-4 w-4 text-dusk-400" />
+        <h3 className="text-sm font-bold text-gray-800">미쿠의 이번 달 안부</h3>
       </div>
 
       <div className="flex flex-col sm:flex-row-reverse items-center gap-3 sm:gap-6">
@@ -103,7 +108,9 @@ export function SpendingCoach({ transactions, exchangeRates }: Props) {
 
         {/* 말풍선 */}
         <div className="relative w-full flex-1">
-          <div className={`relative rounded-3xl border-2 ${theme.bubble} px-5 py-4`}>
+          <div
+            className={`relative rounded-3xl border-2 shadow-md ${theme.bubble} px-5 py-4`}
+          >
             {/* 꼬리: 모바일은 위쪽, 데스크톱은 캐릭터 쪽(오른쪽) */}
             <span
               className={`sm:hidden absolute -top-[9px] left-1/2 -translate-x-1/2 h-4 w-4 rotate-45 border-l-2 border-t-2 ${theme.tail}`}
@@ -118,13 +125,13 @@ export function SpendingCoach({ transactions, exchangeRates }: Props) {
               {review.badge}
             </span>
 
-            <p className="mt-2 text-[15px] font-bold leading-snug text-gray-800">
+            <p className="mt-2 text-[15px] font-bold leading-snug text-stone-800 break-keep">
               {review.headline}
             </p>
 
             <p
               key={line}
-              className="mascot-line-in mt-1.5 text-sm leading-relaxed text-gray-600 min-h-[2.5rem]"
+              className="mascot-line-in mt-1.5 text-sm leading-relaxed text-stone-600 min-h-[2.5rem] break-keep"
             >
               {line}
             </p>
@@ -135,7 +142,7 @@ export function SpendingCoach({ transactions, exchangeRates }: Props) {
                   <span
                     key={i}
                     className={`h-1 rounded-full transition-all ${
-                      i === lineIdx ? 'w-4 bg-gray-400' : 'w-1.5 bg-gray-300'
+                      i === lineIdx ? 'w-4 bg-stone-400' : 'w-1.5 bg-stone-300'
                     }`}
                   />
                 ))}
@@ -145,9 +152,12 @@ export function SpendingCoach({ transactions, exchangeRates }: Props) {
 
           {/* 요약 지표 */}
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-            <MiniStat label={`${review.monthLabel} 지출`} value={formatAmount(review.monthTotal)} />
-            <MiniStat label="최근 평균 대비" value={diffLabel} />
-            <MiniStat label="결제 건수" value={`${review.txCount}건`} />
+            <MiniStat
+              label={`${review.monthLabel} 생활비`}
+              value={<CountUp value={review.monthTotal} format={formatAmount} />}
+            />
+            <MiniStat label="평소와 비교" value={diffLabel} />
+            <MiniStat label="결제 횟수" value={`${review.txCount}건`} />
           </div>
         </div>
       </div>
@@ -155,11 +165,11 @@ export function SpendingCoach({ transactions, exchangeRates }: Props) {
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: string }) {
+function MiniStat({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white/80 border border-gray-100 px-2 py-2">
-      <p className="text-[11px] text-gray-400">{label}</p>
-      <p className="text-xs font-bold text-gray-800 truncate">{value}</p>
+    <div className="rounded-2xl bg-white/80 border border-cream-200 px-2 py-2">
+      <p className="text-[11px] text-stone-400">{label}</p>
+      <p className="text-xs font-bold text-stone-800 truncate">{value}</p>
     </div>
   );
 }

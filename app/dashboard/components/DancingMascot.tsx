@@ -1,11 +1,17 @@
 'use client';
 
 import type { SpendingMood } from '@/lib/spending-review';
+import './mascot-moods.css';
 
 /**
- * 지출 코치 캐릭터 "미쿠".
+ * 안부를 전하는 캐릭터 "미쿠".
  * 외부 3D 에셋 없이 SVG + CSS 3D 트랜스폼(perspective/rotateY)으로
- * 좌우로 돌며 춤추는 모습을 만든다. 표정은 이번 달 지출 평가에 따라 바뀐다.
+ * 좌우로 돌며 춤추는 모습을 만든다. 표정·몸짓은 이번 달 안부의 결(mood)에 따라 바뀐다.
+ *  - great/good: 손끝에서 하트가 몽글몽글 피어오름
+ *  - normal: 춤추다가 가끔 오른손을 들어 손 인사
+ *  - warning/alert: 다정한 미소 + 가슴께 하트가 천천히 두근, 템포를 늦춰 '토닥토닥'
+ *  - empty: 느긋한 춤과 음표 하나
+ * 결별 모션은 mascot-moods.css(접두사 miku-), 기본 춤은 globals.css(mascot-).
  */
 
 const C = {
@@ -27,7 +33,93 @@ const C = {
   pink: '#C43C79',
   blush: '#F4A9B8',
   lip: '#C4576B',
+  heart: '#F2789E',
+  heartSoft: '#F58AAE',
+  heartLight: '#F79DBA',
 } as const;
+
+/** (0,0) 중심, 너비 18 정도의 하트 */
+const HEART_PATH =
+  'M0 7 C-1 6.2 -9 1 -9 -3.4 C-9 -6.8 -6.6 -8.6 -4.3 -8.6 C-2.3 -8.6 -0.8 -7.4 0 -6 C0.8 -7.4 2.3 -8.6 4.3 -8.6 C6.6 -8.6 9 -6.8 9 -3.4 C9 1 1 6.2 0 7 Z';
+
+function Heart({
+  className,
+  fill,
+  outline = false,
+}: {
+  className: string;
+  fill: string;
+  /** 흰 테두리 — 청록 머리카락 위를 지날 때도 하트가 탁해지지 않게 */
+  outline?: boolean;
+}) {
+  return (
+    <g className={className}>
+      {outline && (
+        <path d={HEART_PATH} fill="#FFFFFF" stroke="#FFFFFF" strokeWidth="3.2" strokeLinejoin="round" />
+      )}
+      <path d={HEART_PATH} fill={fill} />
+      <ellipse
+        cx="-4.2"
+        cy="-4.4"
+        rx="2"
+        ry="1.3"
+        fill="#FFFFFF"
+        opacity="0.6"
+        transform="rotate(-35 -4.2 -4.4)"
+      />
+    </g>
+  );
+}
+
+/** 음표 — normal은 셋, empty는 하나, warning/alert은 없음(가슴의 하트가 대신한다) */
+function Notes({ mood }: { mood: SpendingMood }) {
+  if (mood === 'normal') {
+    return (
+      <g fill={C.tealDark}>
+        <text className="mascot-note mascot-note-1" x="52" y="212" fontSize="20">♪</text>
+        <text className="mascot-note mascot-note-2" x="196" y="196" fontSize="17">♫</text>
+        <text className="mascot-note mascot-note-3" x="72" y="150" fontSize="15">♪</text>
+      </g>
+    );
+  }
+  if (mood === 'empty') {
+    return (
+      <g fill={C.tealDark}>
+        <text className="mascot-note mascot-note-1 miku-note-solo" x="52" y="212" fontSize="20">
+          ♪
+        </text>
+      </g>
+    );
+  }
+  if (mood === 'good') {
+    return (
+      <g fill={C.tealDark}>
+        <text className="mascot-note mascot-note-3" x="72" y="150" fontSize="15">♪</text>
+      </g>
+    );
+  }
+  return null;
+}
+
+/** great/good: 양손에서 차례로 떠오르는 하트 (몸 앞에 그린다) */
+function FloatingHearts({ mood }: { mood: SpendingMood }) {
+  if (mood !== 'great' && mood !== 'good') return null;
+  return (
+    <g>
+      <g transform="translate(66 216)">
+        <Heart className="miku-heart miku-heart-1" fill={C.heart} outline />
+      </g>
+      <g transform="translate(196 208)">
+        <Heart className="miku-heart miku-heart-2" fill={C.heartSoft} outline />
+      </g>
+      {mood === 'great' && (
+        <g transform="translate(184 236)">
+          <Heart className="miku-heart miku-heart-3" fill={C.heart} outline />
+        </g>
+      )}
+    </g>
+  );
+}
 
 /** 입 모양으로 감정을 표현 */
 function Mouth({ mood }: { mood: SpendingMood }) {
@@ -39,23 +131,13 @@ function Mouth({ mood }: { mood: SpendingMood }) {
       />
     );
   }
-  if (mood === 'warning') {
+  if (mood === 'warning' || mood === 'alert') {
+    // 다정하게 다문 미소 — 걱정 대신 '괜찮아'
     return (
       <path
-        d="M123 133 Q130 126 137 133"
+        d="M124.5 127.5 Q130 132.5 135.5 127.5"
         stroke={C.lip}
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        fill="none"
-      />
-    );
-  }
-  if (mood === 'alert') {
-    return (
-      <path
-        d="M121 131 q4.5 -5 9 0 q4.5 5 9 0"
-        stroke={C.lip}
-        strokeWidth="2.6"
+        strokeWidth="2.4"
         strokeLinecap="round"
         fill="none"
       />
@@ -79,10 +161,14 @@ export function DancingMascot({
   mood?: SpendingMood;
   className?: string;
 }) {
-  const flustered = mood === 'warning' || mood === 'alert';
+  const comforting = mood === 'warning' || mood === 'alert';
+  const calm = comforting || mood === 'empty';
 
   return (
-    <div className={`mascot-stage ${className}`} aria-hidden="true">
+    <div
+      className={`mascot-stage miku-mood miku-mood-${mood} ${calm ? 'miku-calm' : ''} ${className}`}
+      aria-hidden="true"
+    >
       <svg
         viewBox="0 0 260 330"
         className="mascot-sway w-full h-full overflow-visible"
@@ -108,17 +194,17 @@ export function DancingMascot({
             <stop offset="0%" stopColor={C.teal} stopOpacity="0.28" />
             <stop offset="100%" stopColor={C.teal} stopOpacity="0" />
           </radialGradient>
+          <radialGradient id="miku-heart-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={C.heartLight} stopOpacity="0.85" />
+            <stop offset="100%" stopColor={C.heartLight} stopOpacity="0" />
+          </radialGradient>
         </defs>
 
         {/* 무대 조명 */}
         <circle cx="130" cy="180" r="118" fill="url(#mascot-glow)" />
 
         {/* 음표 */}
-        <g className="mascot-notes" fill={C.tealDark}>
-          <text className="mascot-note mascot-note-1" x="52" y="212" fontSize="20">♪</text>
-          <text className="mascot-note mascot-note-2" x="196" y="196" fontSize="17">♫</text>
-          <text className="mascot-note mascot-note-3" x="72" y="150" fontSize="15">♪</text>
-        </g>
+        <Notes mood={mood} />
 
         {/* 바닥 그림자 */}
         <ellipse className="mascot-shadow" cx="130" cy="308" rx="60" ry="10" fill={C.tealDark} />
@@ -188,6 +274,16 @@ export function DancingMascot({
             <circle cx="170" cy="230" r="9" fill={C.skin} />
           </g>
 
+          {/* 토닥토닥: 가슴께에서 천천히 두근거리는 하트 */}
+          {comforting && (
+            <g transform="translate(146 170)">
+              <circle className="miku-chest-glow" r="16" fill="url(#miku-heart-glow)" />
+              <g transform="scale(0.76)">
+                <Heart className="miku-chest-heart" fill={C.heart} />
+              </g>
+            </g>
+          )}
+
           {/* 머리 */}
           <g className="mascot-head">
             {/* 뒷머리 */}
@@ -253,18 +349,11 @@ export function DancingMascot({
               <rect x="156" y="50" width="36" height="11" rx="2.5" fill={C.dark} />
               <rect x="159" y="53" width="30" height="3" rx="1.5" fill={C.pink} />
             </g>
-
-            {/* 당황했을 때 땀방울 */}
-            {flustered && (
-              <path
-                className="mascot-sweat"
-                d="M194 74 C199 83 203 89 203 94 C203 99 199 103 194 103 C189 103 185 99 185 94 C185 89 189 83 194 74 Z"
-                fill="#7FD8F5"
-                opacity="0.9"
-              />
-            )}
           </g>
         </g>
+
+        {/* 손끝에서 피어오르는 하트 (몸 앞) */}
+        <FloatingHearts mood={mood} />
       </svg>
     </div>
   );
