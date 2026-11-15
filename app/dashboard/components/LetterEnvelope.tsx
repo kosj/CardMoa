@@ -11,7 +11,9 @@ import {
 } from 'react';
 import { handwriting as pen } from '@/app/fonts';
 import type { Letter } from '@/lib/letters';
+import type { Memory } from '@/lib/memory-types';
 import { useReducedMotion } from '@/app/components/motion';
+import { LetterPhotoClip, LetterPhotoPeek } from './LetterPhotoClip';
 import './letter.css';
 
 /* 손글씨 폰트(편지 본문·서명)는 사진 캡션과 같은 인스턴스를 쓴다 — app/fonts.ts */
@@ -162,7 +164,15 @@ interface Props {
   writeKey: number;
   /** 이미 펼친 상태에서 다른 쪽지로 바꿀 때는 손글씨를 바로 시작 */
   quickWrite: boolean;
+  /** 쪽지에 클립으로 꽂힌 사진 (없거나 사진이 지워졌으면 null) */
+  photo?: Memory | null;
+  /** 꽂힌 사진을 눌렀을 때 — 크게 보기 */
+  onOpenPhoto?: () => void;
 }
+
+/* 편지지가 다 올라온 뒤(덮개 380ms + 올라오기 900ms 무렵) 사진이 '찰칵' 꽂힌다 */
+const CLIP_DELAY = 1240;
+const CLIP_DELAY_QUICK = 160;
 
 export function LetterEnvelope({
   letter,
@@ -175,6 +185,8 @@ export function LetterEnvelope({
   onMotionEnd,
   writeKey,
   quickWrite,
+  photo = null,
+  onOpenPhoto,
 }: Props) {
   const paperId = useId();
   const stageRef = useRef<HTMLDivElement>(null);
@@ -250,11 +262,21 @@ export function LetterEnvelope({
   };
 
   const dateShort = formatLetterDate(letter.created_at);
+  const envelopeNotes = [unopened && '새 쪽지', photo && '사진 동봉'].filter(Boolean).join(', ');
+  const envelopeLabel = open
+    ? '쪽지 접기'
+    : `${dateShort} 쪽지 ${unopened ? '열어 보기' : '다시 읽기'}${
+        envelopeNotes ? ` (${envelopeNotes})` : ''
+      }`;
 
   return (
     <div className="letter-stage-wrap flex flex-col items-center">
       {/* 상태 한 줄 */}
-      <p className="mb-5 flex items-center gap-2 text-sm" aria-live="polite">
+      {/* 사진이 붙은 쪽지는 클립·사진 모서리가 위로 삐져나오므로 한 뼘 더 띄운다 */}
+      <p
+        className={`${photo ? 'mb-8' : 'mb-5'} flex items-center gap-2 text-sm`}
+        aria-live="polite"
+      >
         {unopened ? (
           <>
             <span className="relative inline-flex h-2 w-2 rounded-full bg-dusk-400" />
@@ -286,10 +308,19 @@ export function LetterEnvelope({
                 <article
                   ref={setPaperEl}
                   id={paperId}
-                  className="letter-paper"
-                  aria-label={`아빠의 쪽지, ${dateShort}`}
+                  className={`letter-paper ${photo ? 'has-photo' : ''}`}
+                  aria-label={`아빠의 쪽지, ${dateShort}${photo ? ' (사진 1장)' : ''}`}
                 >
                   <div key={writeKey} className={open ? 'letter-is-writing' : undefined}>
+                    {/* 오른쪽 위 모서리에 클립으로 꽂힌 사진 — 편지지가 다 올라온 뒤 '찰칵' */}
+                    {photo && (
+                      <LetterPhotoClip
+                        memory={photo}
+                        onOpen={() => onOpenPhoto?.()}
+                        delay={quickWrite ? CLIP_DELAY_QUICK : CLIP_DELAY}
+                      />
+                    )}
+
                     <div
                       className="letter-paper-head"
                       style={{ ['--hd' as string]: `${headDelay}ms` } as CSSProperties}
@@ -305,6 +336,8 @@ export function LetterEnvelope({
                     </div>
 
                     <div className={`letter-body ${pen.className}`}>
+                      {/* 사진이 덮는 자리만큼 첫 줄들을 비켜 쓴다 (글씨가 사진 밑에 깔리지 않게) */}
+                      {photo && <span className="letter-clip-room" aria-hidden="true" />}
                       {writing.lines.map((strokes, li) => (
                         <p key={li} className="letter-line">
                           {strokes.map((s, si) =>
@@ -345,6 +378,9 @@ export function LetterEnvelope({
                 </article>
               </div>
 
+              {/* 봉투 뒤로 살짝 보이는 사진 모서리 */}
+              {photo && <LetterPhotoPeek memory={photo} />}
+
               {/* 봉투 — 누르면 열리고, 열린 상태에서 누르면 다시 접힌다 */}
               <button
                 type="button"
@@ -352,11 +388,7 @@ export function LetterEnvelope({
                 onClick={onToggle}
                 aria-expanded={open}
                 aria-controls={paperId}
-                aria-label={
-                  open
-                    ? '쪽지 접기'
-                    : `${dateShort} 쪽지 ${unopened ? '열어 보기 (새 쪽지)' : '다시 읽기'}`
-                }
+                aria-label={envelopeLabel}
               >
                 <span className="letter-env-back" aria-hidden="true" />
                 <span className="letter-flap" aria-hidden="true">

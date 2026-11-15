@@ -11,6 +11,7 @@ import './mascot-moods.css';
  *  - normal: 춤추다가 가끔 오른손을 들어 손 인사
  *  - warning/alert: 다정한 미소 + 가슴께 하트가 천천히 두근, 템포를 늦춰 '토닥토닥'
  *  - empty: 느긋한 춤과 음표 하나
+ *  - giggling(누르면 잠깐): 눈을 질끈 감고 활짝 웃는 얼굴 — MikuCard가 켠다
  * 결별 모션은 mascot-moods.css(접두사 miku-), 기본 춤은 globals.css(mascot-).
  */
 
@@ -121,8 +122,27 @@ function FloatingHearts({ mood }: { mood: SpendingMood }) {
   );
 }
 
+/** 간지럼 탈 때: 눈을 질끈 감고 웃는 '^ ^' (깜빡임 없이) */
+function GiggleEyes() {
+  return (
+    <g stroke={C.eye} strokeWidth="4.2" strokeLinecap="round" fill="none">
+      <path d="M101 114 Q112 100 123 114" />
+      <path d="M137 114 Q148 100 159 114" />
+    </g>
+  );
+}
+
 /** 입 모양으로 감정을 표현 */
-function Mouth({ mood }: { mood: SpendingMood }) {
+function Mouth({ mood, giggling = false }: { mood: SpendingMood; giggling?: boolean }) {
+  if (giggling) {
+    // 활짝 벌린 웃음
+    return (
+      <g>
+        <path d="M119.5 123.5 C123 140 137 140 140.5 123.5 C134 127 126 127 119.5 123.5 Z" fill={C.lip} />
+        <path d="M124.5 133.5 C127 136.6 133 136.6 135.5 133.5 C133 131.6 127 131.6 124.5 133.5 Z" fill={C.heartLight} />
+      </g>
+    );
+  }
   if (mood === 'great' || mood === 'good') {
     return (
       <path
@@ -156,9 +176,12 @@ function Mouth({ mood }: { mood: SpendingMood }) {
 
 export function DancingMascot({
   mood = 'normal',
+  giggling = false,
   className = '',
 }: {
   mood?: SpendingMood;
+  /** 미쿠를 눌렀을 때 잠깐 — 눈을 감고 활짝 웃는다 (MikuCard가 켠다) */
+  giggling?: boolean;
   className?: string;
 }) {
   const comforting = mood === 'warning' || mood === 'alert';
@@ -292,26 +315,30 @@ export function DancingMascot({
             <ellipse cx="130" cy="96" rx="47" ry="45" fill={C.skin} />
 
             {/* 표정 */}
-            <g className="mascot-eyes">
-              <g>
-                <ellipse cx="112" cy="110" rx="11.5" ry="13.5" fill={C.eye} />
-                <ellipse cx="112" cy="113" rx="8" ry="9" fill={C.iris} />
-                <circle cx="108" cy="105" r="4.6" fill="#FFFFFF" />
-                <circle cx="116" cy="118" r="2.2" fill="#FFFFFF" opacity="0.85" />
-                <path d="M100 103 C104 95 120 95 124 103" stroke={C.eye} strokeWidth="4" strokeLinecap="round" fill="none" />
+            {giggling ? (
+              <GiggleEyes />
+            ) : (
+              <g className="mascot-eyes">
+                <g>
+                  <ellipse cx="112" cy="110" rx="11.5" ry="13.5" fill={C.eye} />
+                  <ellipse cx="112" cy="113" rx="8" ry="9" fill={C.iris} />
+                  <circle cx="108" cy="105" r="4.6" fill="#FFFFFF" />
+                  <circle cx="116" cy="118" r="2.2" fill="#FFFFFF" opacity="0.85" />
+                  <path d="M100 103 C104 95 120 95 124 103" stroke={C.eye} strokeWidth="4" strokeLinecap="round" fill="none" />
+                </g>
+                <g>
+                  <ellipse cx="148" cy="110" rx="11.5" ry="13.5" fill={C.eye} />
+                  <ellipse cx="148" cy="113" rx="8" ry="9" fill={C.iris} />
+                  <circle cx="144" cy="105" r="4.6" fill="#FFFFFF" />
+                  <circle cx="152" cy="118" r="2.2" fill="#FFFFFF" opacity="0.85" />
+                  <path d="M136 103 C140 95 156 95 160 103" stroke={C.eye} strokeWidth="4" strokeLinecap="round" fill="none" />
+                </g>
               </g>
-              <g>
-                <ellipse cx="148" cy="110" rx="11.5" ry="13.5" fill={C.eye} />
-                <ellipse cx="148" cy="113" rx="8" ry="9" fill={C.iris} />
-                <circle cx="144" cy="105" r="4.6" fill="#FFFFFF" />
-                <circle cx="152" cy="118" r="2.2" fill="#FFFFFF" opacity="0.85" />
-                <path d="M136 103 C140 95 156 95 160 103" stroke={C.eye} strokeWidth="4" strokeLinecap="round" fill="none" />
-              </g>
-            </g>
-            <ellipse cx="95" cy="123" rx="9" ry="5" fill={C.blush} opacity="0.55" />
-            <ellipse cx="165" cy="123" rx="9" ry="5" fill={C.blush} opacity="0.55" />
+            )}
+            <ellipse cx="95" cy="123" rx="9" ry="5" fill={C.blush} opacity={giggling ? 0.85 : 0.55} />
+            <ellipse cx="165" cy="123" rx="9" ry="5" fill={C.blush} opacity={giggling ? 0.85 : 0.55} />
             <ellipse cx="130" cy="118" rx="1.6" ry="1.2" fill={C.skinShade} />
-            <Mouth mood={mood} />
+            <Mouth mood={mood} giggling={giggling} />
 
             {/* 앞머리 */}
             <path
