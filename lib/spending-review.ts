@@ -162,7 +162,7 @@ function pickHeadline(
     case 'alert':
     default:
       return {
-        badge: '🫂 무슨 일 있었어?',
+        badge: '🧡 무슨 일 있었어?',
         headline: `${monthLabel} 생활비 ${amount}. 평소보다 좀 더 썼네 — 무슨 일 있었어? 필요한 거 있으면 아빠한테 말해.`,
       };
   }
@@ -174,7 +174,7 @@ const CARE_LINE: Record<Exclude<SpendingMood, 'empty'>, string> = {
   good: '아빠가 요즘 잘 지내는 것 같아서 마음 놓인대 💚',
   normal: '오늘 하루도 수고했어. 따뜻한 거 한 잔 마시면서 쉬어 ☕',
   warning: '밥은 잘 챙겨 먹고 있지? 무리하지 마 🫶',
-  alert: '큰일 있었던 거면 혼자 끙끙대지 말고 꼭 얘기해 줘. 미쿠도 아빠도 네 편이야 🫂',
+  alert: '큰일 있었던 거면 혼자 끙끙대지 말고 꼭 얘기해 줘. 미쿠도 아빠도 네 편이야 🧡',
 };
 
 /** 받침 유무에 맞춰 '이었어' / '였어'를 고른다 (예: 쿠팡이었어, 스타벅스였어) */
