@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from 'react';
 import { ClipboardPaste, Loader2, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { Reveal } from '@/app/components/motion';
 import {
   parseAndSavePaymentText,
   updateIncludeDomestic,
   type ParseActionResult,
 } from '../actions';
+import { DashPiggyPop } from './DashSavePop';
 
 interface Props {
   /** 서버에 저장된 '국내(원화) 결제 포함' 설정 */
@@ -19,6 +21,8 @@ export function PaymentTextParser({ includeDomestic }: Props) {
   // 서버 설정을 낙관적으로 반영하고, 저장 실패 시 되돌린다
   const [domestic, setDomestic] = useState(includeDomestic);
   const [settingError, setSettingError] = useState<string | null>(null);
+  // 저장 성공 시 한 번: 동전이 저금통에 쏙 (key를 바꿔 매번 처음부터 재생)
+  const [pop, setPop] = useState<{ key: number; show: boolean }>({ key: 0, show: false });
   const [isPending, startTransition] = useTransition();
 
   const handleToggleDomestic = (next: boolean) => {
@@ -38,12 +42,14 @@ export function PaymentTextParser({ includeDomestic }: Props) {
   const handleSubmit = () => {
     if (!text.trim() || isPending) return;
     setResult(null);
+    setPop((p) => ({ ...p, show: false }));
 
     startTransition(async () => {
       const res = await parseAndSavePaymentText(text);
       setResult(res);
       if (res.success && res.inserted > 0) {
         setText('');
+        setPop((p) => ({ key: p.key + 1, show: true }));
       }
     });
   };
@@ -55,7 +61,10 @@ export function PaymentTextParser({ includeDomestic }: Props) {
   };
 
   return (
-    <section className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-6">
+    <Reveal
+      as="section"
+      className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-6"
+    >
       <div className="flex items-center gap-2 mb-1">
         <ClipboardPaste className="h-5 w-5 text-rose-400" />
         <h2 className="text-base font-bold text-gray-800">
@@ -100,28 +109,38 @@ export function PaymentTextParser({ includeDomestic }: Props) {
 
       <div className="mt-3 flex items-center justify-between gap-4">
         <span className="text-xs text-gray-400 select-none">
-          Ctrl + Enter로도 실행 가능
+          <span className="hidden sm:inline">Ctrl + Enter로도 실행 가능</span>
         </span>
 
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={isPending || !text.trim()}
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-pink-400 px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-rose-200 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-opacity"
-        >
-          {isPending ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              분석 중…
-            </>
-          ) : (
-            '내역 반영하기'
+        <div className="relative shrink-0">
+          {pop.show && (
+            <span className="absolute right-full top-1/2 mr-2 flex -translate-y-1/2">
+              <DashPiggyPop
+                key={pop.key}
+                onDone={() => setPop((p) => ({ ...p, show: false }))}
+              />
+            </span>
           )}
-        </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isPending || !text.trim()}
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-pink-400 px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-rose-200 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-opacity"
+          >
+            {isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                분석 중…
+              </>
+            ) : (
+              '내역 반영하기'
+            )}
+          </button>
+        </div>
       </div>
 
       {result && <ResultBanner result={result} />}
-    </section>
+    </Reveal>
   );
 }
 
