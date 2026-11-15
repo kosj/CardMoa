@@ -6,7 +6,11 @@ import './hero.css';
  *
  * - 순수 SVG + CSS (hero.css). 랜딩 페이지에서 유일하게 반복되는 모션이라
  *   걸음·팔 흔들림·하트·햇무리 모두 느리고 잔잔하게 움직인다.
- * - 얼굴 없는 뒷모습: 누구나 자기 이야기로 볼 수 있게, 실제 인물을 닮지 않게.
+ * - 얼굴 없는 뒷모습. 옷차림만 우리 가족을 닮게 그렸다:
+ *   은별이는 데님 뉴스보이 캡·베이지 트렌치코트·키링 달린 크림 백팩·연회색 바지,
+ *   아빠는 회색 집업 후디·어두운 바지, 둘 다 흰 운동화.
+ *   (사진은 참고만 했고 저장소에는 넣지 않는다)
+ * - 가방 키링은 걸음 루프에 맞춰 달랑거린다.
  * - prefers-reduced-motion이면 하트 하나가 손 위에 떠 있는 정지 장면.
  * - 장식용이므로 aria-hidden — 의미는 주변 문구가 전달한다.
  *
@@ -26,12 +30,44 @@ const PETALS = [
 
 const SKIN_GIRL = '#F7D0B8';
 const SKIN_DAD = '#EDBB9C';
-const SWEATER = '#FFF1E2';
-const SWEATER_SLEEVE = '#F7E2CC';
-const SWEATER_RIB = '#EFD5BC';
-const CARDIGAN = '#8A6C96';
-const CARDIGAN_SLEEVE = '#82668F';
-const CARDIGAN_RIB = '#735780';
+
+// 은별 — 데님 뉴스보이 캡, 베이지 트렌치코트, 크림 백팩, 연회색 바지 (노을빛에 맞춰 채도를 살짝 낮춤)
+const HAIR_GIRL = '#3E2A28';
+const DENIM = '#7389AE';
+const DENIM_SHADE = '#5D7298';
+const DENIM_LIGHT = '#A2B2CF';
+const TRENCH = '#DCC19B';
+const TRENCH_SHADE = '#C9AA80';
+const TRENCH_SLEEVE = '#D5B98F';
+const TRENCH_DARK = '#B39068';
+const BAG = '#F8F1DE';
+const BAG_SHADE = '#E9DFC3';
+const BAG_POCKET = '#EFE6CC';
+const BAG_SEAM = '#D3C49F';
+const BAG_STRAP = '#EEE4C8';
+const CHARM_CHAIN = '#C9A36A';
+const PLUSH = '#F29FB5';
+const PLUSH_LIGHT = '#F8BFCD';
+const PANTS = '#CDC8CE';
+const PANTS_IN = '#C0BBC3';
+const PANTS_FOLD = '#AFA9B2';
+
+// 아빠 — 회색 집업 후디, 어두운 바지, 짧은 짙은 갈색 머리
+const HAIR_DAD = '#4A352E';
+const HAIR_DAD_LIGHT = '#7A5A4A';
+const HOODIE = '#ABA8B0';
+const HOODIE_SHADE = '#9C99A3';
+const HOODIE_SLEEVE = '#A5A2AB';
+const HOODIE_RIB = '#928F9A';
+const HOOD = '#B4B1B9';
+const TROUSERS = '#4D4A5B';
+const TROUSERS_IN = '#454253';
+
+// 두 사람 모두 흰 운동화
+const SNEAKER = '#FFFDF8';
+const SNEAKER_EDGE = '#E8D9CE';
+const SNEAKER_TAB = '#DDD3CB';
+const SOLE = '#E6DCD3';
 
 export function FatherDaughterHero({ className = '' }: { className?: string }) {
   return (
@@ -201,119 +237,170 @@ export function FatherDaughterHero({ className = '' }: { className?: string }) {
             <ellipse cx="350" cy="446" rx="22" ry="2.8" />
           </g>
 
-          {/* ── 딸: 긴 머리, 리본, 백팩 ───────────── */}
+          {/* ── 딸 은별: 데님 뉴스보이 캡, 긴 생머리, 베이지 트렌치코트, 크림 백팩 ── */}
           <g className="hero-girl">
-            {/* 바깥쪽 다리 (청바지 + 운동화) */}
+            {/* 바깥쪽 다리 (연회색 바지 + 흰 운동화) */}
             <g className="hero-anim hero-leg hero-leg-a">
-              <path d="M233 334 L252 334 L251.5 352 C251 382 250.2 410 249.8 437 L240 437 C239.4 410 237.5 380 233.5 354 C232.6 346 232.6 340 233 334 Z" fill="#8E93BE" />
-              <rect x="238.2" y="433" width="13.4" height="13" rx="5" fill="#FFF8EE" />
-              <rect x="238.2" y="442" width="13.4" height="4" rx="2" fill="#E6CBBC" />
-              <rect x="243" y="433" width="3.8" height="4" rx="1.2" fill="#F08A9B" />
+              <path d="M233 334 L252 334 L251.7 352 C251.3 382 250.9 410 250.7 436.5 L238.6 436.5 C238 410 236.4 380 233.4 354 C232.6 346 232.6 340 233 334 Z" fill={PANTS} />
+              <path d="M239.2 428.4 Q244.7 430.6 250.4 428.4" fill="none" stroke={PANTS_FOLD} strokeWidth="1" strokeLinecap="round" />
+              <rect x="237.6" y="432.6" width="14" height="13.4" rx="5" fill={SNEAKER} stroke={SNEAKER_EDGE} strokeWidth="0.8" />
+              <rect x="237.6" y="442" width="14" height="4" rx="2" fill={SOLE} />
+              <rect x="242.6" y="432.6" width="4" height="3.6" rx="1.2" fill={SNEAKER_TAB} />
             </g>
             {/* 안쪽 다리 */}
             <g className="hero-anim hero-leg hero-leg-b">
-              <path d="M252 334 L271 334 C271.4 340 271.4 346 270.5 354 C266.5 380 264.6 410 264 437 L254.2 437 C253.8 410 253 382 252.5 352 Z" fill="#858AB6" />
-              <rect x="252.6" y="433" width="13.4" height="13" rx="5" fill="#FFF8EE" />
-              <rect x="252.6" y="442" width="13.4" height="4" rx="2" fill="#E6CBBC" />
-              <rect x="257.4" y="433" width="3.8" height="4" rx="1.2" fill="#F08A9B" />
+              <path d="M252 334 L271 334 C271.4 340 271.4 346 270.6 354 C267.6 380 266 410 265.4 436.5 L253.3 436.5 C253.1 410 252.7 382 252.3 352 Z" fill={PANTS_IN} />
+              <path d="M253.6 428.4 Q259.2 430.6 265 428.4" fill="none" stroke={PANTS_FOLD} strokeWidth="1" strokeLinecap="round" />
+              <rect x="252.4" y="432.6" width="14" height="13.4" rx="5" fill={SNEAKER} stroke={SNEAKER_EDGE} strokeWidth="0.8" />
+              <rect x="252.4" y="442" width="14" height="4" rx="2" fill={SOLE} />
+              <rect x="257.4" y="432.6" width="4" height="3.6" rx="1.2" fill={SNEAKER_TAB} />
             </g>
 
             {/* 상체 — 걸음에 맞춰 살짝 오르내림 */}
             <g className="hero-anim hero-walk">
-              {/* 청바지 뒷주머니 */}
-              <g fill="#7D82AD">
-                <path d="M237 337 L248 337 L247.5 346 Q242.5 349 237.8 346 Z" />
-                <path d="M256 337 L267 337 L266.2 346 Q261.5 349 256.5 346 Z" />
-              </g>
-              {/* 크림색 니트 */}
-              <path d="M231 284 C231 275 237 271 245 270 L259 270 C267 271 273 275 273 284 L271.5 318 C271.5 326 272 332 272.5 339 L231.5 339 C232 332 232.5 326 232.5 318 Z" fill={SWEATER} />
-              <rect x="231.3" y="333.5" width="41.4" height="5.8" rx="2.5" fill={SWEATER_RIB} />
-              {/* 백팩 어깨끈 */}
-              <path d="M236.5 271 L242 270 L241.5 290 L236 290 Z" fill="#D8667B" />
-              <path d="M262 270 L267.5 271 L268 290 L262.5 290 Z" fill="#D8667B" />
-              {/* 백팩 */}
-              <rect x="233" y="279" width="38" height="51" rx="10" fill="#F08C9C" />
-              <rect x="233" y="279" width="6" height="51" rx="3" fill="#E57A8D" opacity="0.7" />
-              <rect x="238" y="306" width="28" height="21.5" rx="7" fill="#E57C90" />
-              <path d="M240.5 311.5 Q252 307.5 263.5 311.5" fill="none" stroke="#CC5F76" strokeWidth="1.3" strokeLinecap="round" />
-              {/* 가방에 단 작은 별 — '은별' */}
-              <path d="M261.5 310.6 L261.5 314.6" stroke="#CC5F76" strokeWidth="0.9" />
-              <path d="M261.5 314.2 L262.6 316.8 L265.3 317 L263.2 318.7 L263.9 321.4 L261.5 319.9 L259.1 321.4 L259.8 318.7 L257.7 317 L260.4 316.8 Z" fill="#FFE7A6" stroke="#E7B566" strokeWidth="0.5" strokeLinejoin="round" />
+              {/* 짧은 베이지 트렌치코트 (엉덩이를 살짝 덮는 A라인) */}
+              <path d="M231 284 C231 275 237 271 245 270 L259 270 C267 271 273 275 273 284 L272.7 318 C273.3 328 274 338 274.6 348.5 L229.4 348.5 C230 338 230.7 328 231.3 318 Z" fill={TRENCH} />
+              <path d="M266 272 C270.6 274 273 278 273 284 L272.7 318 C273.3 328 274 338 274.6 348.5 L268.8 348.5 C269.4 326 268.8 296 266 272 Z" fill={TRENCH_SHADE} opacity="0.55" />
+              {/* 허리 벨트 (가방 양옆으로 보인다) */}
+              <rect x="230.7" y="318.6" width="42.6" height="4.6" rx="1.5" fill={TRENCH_DARK} />
+              {/* 뒤트임 + 밑단 스티치 */}
+              <path d="M252 331 L252 348.5" stroke={TRENCH_DARK} strokeWidth="1.1" />
+              <path d="M230 345.4 Q252 347 274 345.4" fill="none" stroke={TRENCH_SHADE} strokeWidth="0.9" strokeDasharray="1.6 1.4" />
 
-              {/* 긴 머리 */}
-              <path d="M252 239 C243 239 237.5 246 237.5 255 C237.5 262 236 268 235 274 C233.6 283 233.6 293 234.4 301.5 C240 306 246 304.6 252 307 C258 304.6 264 306 269.6 301.5 C270.4 293 270.4 283 269 274 C268 268 266.5 262 266.5 255 C266.5 246 261 239 252 239 Z" fill="#4B3330" />
-              <g fill="none" stroke="#3A2725" strokeWidth="1.1" strokeLinecap="round" opacity="0.55">
-                <path d="M252 263 C251.6 276 251.2 290 250.8 303" />
-                <path d="M243.5 263 C241.6 276 240.4 288 240.2 299" />
-                <path d="M260.5 263 C262.4 276 263.6 288 263.8 299" />
+              {/* 크림색 백팩 — 어깨끈 */}
+              <path d="M236.4 271.2 L241.6 270.2 L241.2 286 L236 286 Z" fill={BAG_STRAP} />
+              <path d="M262.4 270.2 L267.6 271.2 L268 286 L262.8 286 Z" fill={BAG_STRAP} />
+              {/* 가방 몸통 (윗부분은 머리카락에 가려진다) */}
+              <rect x="233.2" y="279" width="37.6" height="52" rx="11" fill={BAG} />
+              <rect x="233.2" y="279" width="6" height="52" rx="3" fill={BAG_SHADE} opacity="0.75" />
+              {/* 앞주머니 */}
+              <rect x="238.4" y="306.4" width="27.2" height="21" rx="7" fill={BAG_POCKET} />
+              <path d="M241 311.8 Q252 307.8 263 311.8" fill="none" stroke={BAG_SEAM} strokeWidth="1.2" strokeLinecap="round" />
+              <rect x="244.6" y="309.4" width="2.2" height="4.2" rx="1" fill={BAG_SEAM} />
+
+              {/* 가방에 매단 키링들 — 걸음에 맞춰 달랑달랑 */}
+              <rect x="261.3" y="326.2" width="2.4" height="3.4" rx="1" fill={BAG_SEAM} />
+              <g className="hero-anim hero-charm">
+                <circle cx="262.5" cy="329.6" r="1.7" fill="none" stroke={CHARM_CHAIN} strokeWidth="0.9" />
+                {/* 분홍 곰 인형 (뒷모습) */}
+                <g className="hero-anim hero-charm hero-charm-b">
+                  <path d="M261.4 331 L259.2 333.2" stroke={CHARM_CHAIN} strokeWidth="0.8" strokeLinecap="round" />
+                  <circle cx="256.9" cy="333.4" r="1.45" fill={PLUSH} />
+                  <circle cx="261.5" cy="333.4" r="1.45" fill={PLUSH} />
+                  <circle cx="259.2" cy="335.6" r="3.2" fill={PLUSH} />
+                  <ellipse cx="259.2" cy="340.6" rx="2.8" ry="2.5" fill={PLUSH_LIGHT} />
+                  <circle cx="259.2" cy="342.4" r="0.9" fill={PLUSH} />
+                </g>
+                {/* 작은 별 — '은별' */}
+                <g className="hero-anim hero-charm hero-charm-c">
+                  <path d="M263.6 331 L265.8 333.4" stroke={CHARM_CHAIN} strokeWidth="0.8" strokeLinecap="round" />
+                  <path
+                    d="M265.8 332.8 L266.9 335.4 L269.6 335.6 L267.5 337.3 L268.2 340 L265.8 338.5 L263.4 340 L264.1 337.3 L262 335.6 L264.7 335.4 Z"
+                    fill="#FFE7A6"
+                    stroke="#E7B566"
+                    strokeWidth="0.5"
+                    strokeLinejoin="round"
+                  />
+                </g>
               </g>
-              <path d="M243.5 246.5 Q252 241.5 260.5 246.5" fill="none" stroke="#735249" strokeWidth="1.6" strokeLinecap="round" opacity="0.8" />
+
+              {/* 긴 생머리 (모자 아래로 가방 위에 내려온다) */}
+              <path d="M239 250 C238.4 258 237.2 265 236.4 272 C235.4 282 235.8 293 236.8 302 C242 306.4 247 305 252 307 C257 305 262 306.4 267.2 302 C268.2 293 268.6 282 267.6 272 C266.8 265 265.6 258 265 250 Z" fill={HAIR_GIRL} />
+              <g fill="none" stroke="#2E1F1D" strokeWidth="1.1" strokeLinecap="round" opacity="0.55">
+                <path d="M252 262 C251.6 276 251.2 290 250.8 303" />
+                <path d="M244.2 262 C242.6 276 241.6 288 241.4 299" />
+                <path d="M259.8 262 C261.4 276 262.4 288 262.6 299" />
+              </g>
               {/* 노을빛 머리 테두리 */}
-              <path d="M262 243 C265.5 246.5 266.6 251 266.5 256" fill="none" stroke="#F7C9A8" strokeWidth="1.2" strokeLinecap="round" opacity="0.7" />
-              {/* 리본 🎀 */}
-              <path d="M252 257.5 L243.6 252.6 Q241.4 257.5 243.6 262.4 Z" fill="#F48DA0" />
-              <path d="M252 257.5 L260.4 252.6 Q262.6 257.5 260.4 262.4 Z" fill="#F48DA0" />
-              <circle cx="252" cy="257.5" r="2.3" fill="#E36E87" />
+              <path d="M265.8 258 C266.6 263.6 267.4 268.6 268 274" fill="none" stroke="#F7C9A8" strokeWidth="1.2" strokeLinecap="round" opacity="0.7" />
+
+              {/* 데님 뉴스보이 캡 — 뒤에서 본 밴드와 둥근 크라운 */}
+              <path d="M237 249.6 C242.5 254.6 261.5 254.6 267 249.6 L267.4 255.2 C261.6 259.8 242.4 259.8 236.6 255.2 Z" fill={DENIM_SHADE} />
+              <path d="M238.6 256 C244 259.2 260 259.2 265.4 256" fill="none" stroke={DENIM_LIGHT} strokeWidth="0.7" strokeDasharray="1.4 1.3" opacity="0.85" />
+              <path d="M233.4 250.6 C230.8 242.6 236.4 233 252 232.4 C267.6 233 273.2 242.6 270.6 250.6 C265 255.4 239 255.4 233.4 250.6 Z" fill={DENIM} />
+              <g fill="none" stroke={DENIM_SHADE} strokeWidth="0.9" strokeLinecap="round" opacity="0.85">
+                <path d="M252 233.6 C246 238 241.6 245 240.6 253.4" />
+                <path d="M252 233.6 L252 254.2" />
+                <path d="M252 233.6 C258 238 262.4 245 263.4 253.4" />
+              </g>
+              <path d="M237.6 243.4 C239.6 238 244.6 235 250 234.4" fill="none" stroke={DENIM_LIGHT} strokeWidth="1.6" strokeLinecap="round" opacity="0.7" />
+              <circle cx="252" cy="233.2" r="1.8" fill={DENIM_SHADE} />
+              <path d="M262.6 234.6 C268 237.4 271.6 243 270.8 249.6" fill="none" stroke="#F7C9A8" strokeWidth="1.2" strokeLinecap="round" opacity="0.7" />
 
               {/* 바깥 팔 (자유롭게 흔들림) */}
               <g className="hero-anim hero-arm-free">
-                <path d="M233.5 280 Q229.6 296 228.6 309 Q227.4 322 226.2 333" fill="none" stroke={SWEATER_SLEEVE} strokeWidth="9.6" strokeLinecap="round" />
-                <path d="M226.6 328.6 L226.1 334" fill="none" stroke={SWEATER_RIB} strokeWidth="9.8" />
+                <path d="M233.5 280 Q229.6 296 228.6 309 Q227.4 322 226.2 333" fill="none" stroke={TRENCH_SLEEVE} strokeWidth="10" strokeLinecap="round" />
+                <path d="M226.7 328.4 L226.2 334" fill="none" stroke={TRENCH_SHADE} strokeWidth="10.2" />
+                <path d="M226.9 325.6 L226.7 327.8" fill="none" stroke={TRENCH_DARK} strokeWidth="10.2" />
                 <circle cx="226" cy="339.2" r="4.5" fill={SKIN_GIRL} />
               </g>
               {/* 아빠와 맞잡은 팔 */}
               <g className="hero-anim hero-arm-joined">
-                <path d="M270.5 280 Q276.4 297 282.4 309 Q288.6 321.5 294.6 332" fill="none" stroke={SWEATER_SLEEVE} strokeWidth="9.6" strokeLinecap="round" />
-                <path d="M292.2 327.6 L295 332.6" fill="none" stroke={SWEATER_RIB} strokeWidth="9.8" />
+                <path d="M270.5 280 Q276.4 297 282.4 309 Q288.6 321.5 294.6 332" fill="none" stroke={TRENCH_SLEEVE} strokeWidth="10" strokeLinecap="round" />
+                <path d="M292.2 327.6 L295 332.6" fill="none" stroke={TRENCH_SHADE} strokeWidth="10.2" />
+                <path d="M290.6 324.8 L291.7 326.8" fill="none" stroke={TRENCH_DARK} strokeWidth="10.2" />
               </g>
             </g>
           </g>
 
-          {/* ── 아빠: 조금 더 크고, 카디건 ───────────── */}
+          {/* ── 아빠: 회색 집업 후디, 어두운 바지, 흰 운동화 ───────────── */}
           <g className="hero-dad">
             {/* 안쪽 다리 */}
             <g className="hero-anim hero-leg hero-leg-b">
-              <path d="M326 332 L350 332 L349.5 350 C348.6 382 347.6 410 347.2 437 L332 437 C331.2 410 329.4 380 326.8 352 C326 344 325.8 338 326 332 Z" fill="#4A4360" />
-              <rect x="330.4" y="432" width="18" height="14" rx="5.5" fill="#5D4139" />
-              <rect x="330.4" y="442" width="18" height="4" rx="2" fill="#3F2C27" />
+              <path d="M326 332 L350 332 L349.5 350 C348.6 382 347.6 410 347.2 437 L332 437 C331.2 410 329.4 380 326.8 352 C326 344 325.8 338 326 332 Z" fill={TROUSERS_IN} />
+              <rect x="330" y="431.6" width="18.8" height="14.4" rx="5.6" fill={SNEAKER} stroke={SNEAKER_EDGE} strokeWidth="0.8" />
+              <rect x="330" y="442" width="18.8" height="4" rx="2" fill={SOLE} />
+              <rect x="337.2" y="431.6" width="4.4" height="3.8" rx="1.3" fill={SNEAKER_TAB} />
             </g>
             {/* 바깥쪽 다리 */}
             <g className="hero-anim hero-leg hero-leg-a">
-              <path d="M350 332 L374 332 C374.2 338 374 344 373.2 352 C370.6 380 368.8 410 368 437 L352.8 437 C352.4 410 351.4 382 350.5 350 Z" fill="#524A69" />
-              <rect x="351.6" y="432" width="18" height="14" rx="5.5" fill="#5D4139" />
-              <rect x="351.6" y="442" width="18" height="4" rx="2" fill="#3F2C27" />
+              <path d="M350 332 L374 332 C374.2 338 374 344 373.2 352 C370.6 380 368.8 410 368 437 L352.8 437 C352.4 410 351.4 382 350.5 350 Z" fill={TROUSERS} />
+              <rect x="351.2" y="431.6" width="18.8" height="14.4" rx="5.6" fill={SNEAKER} stroke={SNEAKER_EDGE} strokeWidth="0.8" />
+              <rect x="351.2" y="442" width="18.8" height="4" rx="2" fill={SOLE} />
+              <rect x="358.4" y="431.6" width="4.4" height="3.8" rx="1.3" fill={SNEAKER_TAB} />
             </g>
 
             <g className="hero-anim hero-walk">
-              {/* 카디건 */}
-              <path d="M319 270 C319 259 326 253.5 336 252 L364 252 C374 253.5 381 259 381 270 L377.5 314 C377 323 376.5 331 376 338.5 L324 338.5 C323.5 331 323 323 322.5 314 Z" fill={CARDIGAN} />
-              <path d="M369.5 253 C376.5 255.5 381 261 381 270 L377.5 314 C377 323 376.5 331 376 338.5 L368.5 338.5 C370 314 370.8 284 369.5 253 Z" fill="#7B5E87" opacity="0.6" />
-              <rect x="323.6" y="331" width="52.8" height="7.5" rx="3" fill={CARDIGAN_RIB} />
-              {/* 셔츠 깃 + 카디건 목둘레 */}
-              <path d="M338.5 249.5 C344 246 356 246 361.5 249.5 L361 253 C355 250.5 345 250.5 339 253 Z" fill="#FFF8EE" />
-              <path d="M335.5 252 C341 257 359 257 364.5 252 L363 249.5 C357.5 253 342.5 253 337 249.5 Z" fill={CARDIGAN_RIB} />
-              {/* 목, 귀 */}
-              <rect x="342.5" y="236" width="15" height="14" rx="4" fill={SKIN_DAD} />
+              {/* 회색 집업 후디 */}
+              <path d="M319 270 C319 259 326 253.5 336 252 L364 252 C374 253.5 381 259 381 270 L377.5 314 C377 323 376.5 331 376 338.5 L324 338.5 C323.5 331 323 323 322.5 314 Z" fill={HOODIE} />
+              <path d="M369.5 253 C376.5 255.5 381 261 381 270 L377.5 314 C377 323 376.5 331 376 338.5 L368.5 338.5 C370 314 370.8 284 369.5 253 Z" fill={HOODIE_SHADE} opacity="0.6" />
+              <rect x="323.6" y="330.6" width="52.8" height="7.9" rx="3" fill={HOODIE_RIB} />
+              <g stroke={HOODIE_SHADE} strokeWidth="0.8" opacity="0.6">
+                {[330, 337, 344, 351, 358, 365, 372].map((x) => (
+                  <path key={x} d={`M${x} 331.8 L${x} 337.4`} />
+                ))}
+              </g>
+              {/* 목 */}
+              <rect x="342.5" y="236" width="15" height="16" rx="4" fill={SKIN_DAD} />
+              {/* 등에 내려앉은 후드 */}
+              <path d="M333.4 255 C332.6 266.6 336 279.2 343.2 285.2 C346.8 288.2 353.2 288.2 356.8 285.2 C364 279.2 367.4 266.6 366.6 255 Z" fill={HOODIE_SHADE} opacity="0.9" />
+              <path d="M333.4 253.4 C332.6 265 336 277.6 343.2 283.6 C346.8 286.6 353.2 286.6 356.8 283.6 C364 277.6 367.4 265 366.6 253.4 Z" fill={HOOD} />
+              <path d="M350 258 L350 286" stroke={HOODIE_RIB} strokeWidth="1" opacity="0.75" />
+              <path d="M364.8 259 C365 267 362.6 275.6 358 281.4" fill="none" stroke="#F7C9A8" strokeWidth="1.1" strokeLinecap="round" opacity="0.5" />
+              {/* 후드 테두리가 목을 감싼다 */}
+              <path d="M334.6 252.8 C340.6 258.6 359.4 258.6 365.4 252.8 L363.6 248.8 C357.6 253.8 342.4 253.8 336.4 248.8 Z" fill={HOODIE_RIB} />
+              {/* 귀 */}
               <ellipse cx="335.4" cy="229.5" rx="3.3" ry="5.4" fill={SKIN_DAD} />
               <ellipse cx="364.6" cy="229.5" rx="3.3" ry="5.4" fill={SKIN_DAD} />
-              {/* 짧은 머리 (살짝 희끗한 회갈색) */}
-              <path d="M350 213 C340 213 334.5 220 334.5 229 C334.5 236 337 241.5 341 243.5 C344 244.6 356 244.6 359 243.5 C363 241.5 365.5 236 365.5 229 C365.5 220 360 213 350 213 Z" fill="#463D42" />
+              {/* 짧은 짙은 갈색 머리 (윗머리에 볼륨) */}
+              <path d="M350 211.6 C339.6 211.6 334.4 219 334.5 228.4 C334.5 236 337 241.5 341 243.5 C344 244.6 356 244.6 359 243.5 C363 241.5 365.5 236 365.5 228.4 C365.6 219 360.4 211.6 350 211.6 Z" fill={HAIR_DAD} />
               <g fill="none" strokeLinecap="round">
-                <path d="M343.5 218 Q350 214.8 356.5 218" stroke="#7A7075" strokeWidth="1.6" />
+                <path d="M343 217 Q350 213.4 357 217" stroke={HAIR_DAD_LIGHT} strokeWidth="1.6" />
+                <path d="M340.4 238.6 Q350 241.4 359.6 238.6" stroke="#3A2924" strokeWidth="1" opacity="0.6" />
                 {/* 노을빛 테두리 */}
-                <path d="M341 216.5 C337 219.5 335 224 334.8 229" stroke="#F7C9A8" strokeWidth="1.2" opacity="0.7" />
+                <path d="M341 215.4 C337 218.6 335 223.4 334.8 228.6" stroke="#F7C9A8" strokeWidth="1.2" opacity="0.7" />
               </g>
 
               {/* 바깥 팔 */}
               <g className="hero-anim hero-arm-free">
-                <path d="M377.2 268 Q382.6 283 384.2 299 Q385.4 316 385.8 330" fill="none" stroke={CARDIGAN_SLEEVE} strokeWidth="12.5" strokeLinecap="round" />
-                <path d="M385.7 324.6 L385.8 331" fill="none" stroke={CARDIGAN_RIB} strokeWidth="12.7" />
+                <path d="M377.2 268 Q382.6 283 384.2 299 Q385.4 316 385.8 330" fill="none" stroke={HOODIE_SLEEVE} strokeWidth="12.5" strokeLinecap="round" />
+                <path d="M385.7 324.6 L385.8 331" fill="none" stroke={HOODIE_RIB} strokeWidth="12.7" />
                 <circle cx="385.9" cy="336.8" r="5.3" fill={SKIN_DAD} />
               </g>
               {/* 딸과 맞잡은 팔 */}
               <g className="hero-anim hero-arm-joined">
-                <path d="M322.8 268 Q317 283 313.4 299 Q309.6 315.5 304.4 330" fill="none" stroke={CARDIGAN_SLEEVE} strokeWidth="12.5" strokeLinecap="round" />
-                <path d="M306.3 324.8 L304.2 330.6" fill="none" stroke={CARDIGAN_RIB} strokeWidth="12.7" />
+                <path d="M322.8 268 Q317 283 313.4 299 Q309.6 315.5 304.4 330" fill="none" stroke={HOODIE_SLEEVE} strokeWidth="12.5" strokeLinecap="round" />
+                <path d="M306.3 324.8 L304.2 330.6" fill="none" stroke={HOODIE_RIB} strokeWidth="12.7" />
               </g>
             </g>
           </g>

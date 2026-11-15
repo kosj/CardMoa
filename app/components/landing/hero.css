@@ -43,6 +43,21 @@
   animation: hero-swing-free 2.8s ease-in-out infinite;
 }
 
+/* 가방 키링: 고리에 매달린 채 한 보폭(2.8초)에 한 번 좌우로 달랑.
+   안쪽 인형·별은 조금 늦은 박자로 한 번 더 흔들려 진자처럼 보인다 */
+.hero-charm {
+  transform-origin: 50% 0%;
+  animation: hero-charm-sway 2.8s ease-in-out infinite;
+}
+.hero-charm-b {
+  animation-duration: 1.4s;
+  animation-delay: -0.35s;
+}
+.hero-charm-c {
+  animation-duration: 1.4s;
+  animation-delay: -0.9s;
+}
+
 /* 맞잡은 손에서 하트가 피어올라 해 쪽으로 사라진다 (약 4초마다) */
 .hero-heart {
   transform-origin: 50% 100%;
@@ -116,6 +131,16 @@
   }
   50% {
     transform: scaleY(1);
+  }
+}
+
+@keyframes hero-charm-sway {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(6deg);
   }
 }
 
