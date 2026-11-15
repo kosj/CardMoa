@@ -1,0 +1,240 @@
+/* ──────────────────────────────────────────────
+   미쿠 — 안부의 결(mood)별 몸짓
+   기본 춤(mascot-*)은 globals.css, 여기는 결마다 덧입히는 모션만.
+   원칙: 감정 요소는 여유 있고 부드럽게, 경보처럼 다급한 모션은 쓰지 않는다.
+   ────────────────────────────────────────────── */
+
+/* 새로 그린 하트들은 자기 박스 중심을 기준으로 움직인다 */
+.miku-heart,
+.miku-chest-heart,
+.miku-chest-glow {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+/* ── great / good: 손끝에서 하트가 몽글몽글 ── */
+.miku-heart {
+  opacity: 0;
+  animation: miku-heart-float 3.6s ease-in-out infinite;
+}
+.miku-heart-1 {
+  --miku-drift: -7px;
+}
+.miku-heart-2 {
+  --miku-drift: 7px;
+  animation-delay: 1.2s;
+}
+.miku-heart-3 {
+  --miku-drift: 5px;
+  animation-delay: 2.4s;
+}
+
+@keyframes miku-heart-float {
+  /* 오래 또렷하게 떠 있다가 마지막에만 사르르 사라진다 */
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(calc(var(--miku-drift) * -0.4), -12px) scale(1);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(var(--miku-drift), -46px) scale(1);
+  }
+  78% {
+    opacity: 0.85;
+    transform: translate(calc(var(--miku-drift) * 0.6), -66px) scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--miku-drift) * 0.2), -84px) scale(0.7);
+  }
+}
+
+/* ── normal: 춤 중간중간 오른손을 들어 손 인사 ──
+   기본 팔 박자(1.3s)의 5배 = 6.5s 한 바퀴. 앞 40%는 평소 춤, 뒤에서 손을 흔든다. */
+.miku-mood-normal .mascot-arm-r {
+  animation: miku-wave 6.5s ease-in-out infinite;
+}
+
+@keyframes miku-wave {
+  0%,
+  20%,
+  40%,
+  100% {
+    transform: rotate(30deg);
+  }
+  10%,
+  30%,
+  90% {
+    transform: rotate(-16deg);
+  }
+  50% {
+    transform: rotate(-124deg);
+  }
+  56%,
+  68% {
+    transform: rotate(-104deg);
+  }
+  62%,
+  74% {
+    transform: rotate(-128deg);
+  }
+  80% {
+    transform: rotate(-118deg);
+  }
+}
+
+/* ── empty / warning / alert: 느긋하고 차분한 춤 ──
+   박자를 늘리고(empty 1.25배, warning·alert 1.4배) 몸짓 폭도 줄인다. */
+.miku-mood-empty {
+  --miku-beat: 1.625s;
+  --miku-bar: 3.25s;
+}
+.miku-mood-warning,
+.miku-mood-alert {
+  --miku-beat: 1.82s;
+  --miku-bar: 3.64s;
+}
+
+.miku-calm .mascot-sway {
+  animation: miku-sway-calm var(--miku-bar) ease-in-out infinite;
+}
+.miku-calm .mascot-head {
+  animation: miku-head-calm var(--miku-bar) ease-in-out infinite;
+}
+.miku-calm .mascot-arm-l {
+  animation: miku-arm-l-calm var(--miku-beat) ease-in-out infinite;
+}
+.miku-calm .mascot-arm-r {
+  animation: miku-arm-r-calm var(--miku-beat) ease-in-out infinite;
+}
+.miku-calm .mascot-tail-l,
+.miku-calm .mascot-tail-r,
+.miku-calm .mascot-legs {
+  animation-duration: var(--miku-bar);
+}
+.miku-calm .mascot-bob,
+.miku-calm .mascot-skirt,
+.miku-calm .mascot-shadow {
+  animation-duration: var(--miku-beat);
+}
+
+/* empty: 음표 하나가 천천히 */
+.miku-note-solo {
+  animation-duration: 4.6s;
+}
+
+@keyframes miku-sway-calm {
+  0%,
+  100% {
+    transform: rotateY(-9deg) rotateX(2deg) translateY(0);
+  }
+  25% {
+    transform: rotateY(0deg) rotateX(0deg) translateY(-4px);
+  }
+  50% {
+    transform: rotateY(9deg) rotateX(2deg) translateY(0);
+  }
+  75% {
+    transform: rotateY(0deg) rotateX(0deg) translateY(-4px);
+  }
+}
+
+/* 고개를 살짝 기울인 채 '응, 응' 하고 끄덕이는 느낌 */
+@keyframes miku-head-calm {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes miku-arm-l-calm {
+  0%,
+  100% {
+    transform: rotate(-16deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes miku-arm-r-calm {
+  0%,
+  100% {
+    transform: rotate(16deg);
+  }
+  50% {
+    transform: rotate(-8deg);
+  }
+}
+
+/* ── warning / alert: 가슴께 하트가 천천히 두근 ── */
+.miku-chest-heart {
+  animation: miku-heart-pulse 2.6s ease-in-out infinite;
+}
+.miku-chest-glow {
+  animation: miku-glow-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes miku-heart-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.16);
+  }
+  55% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes miku-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+  32% {
+    opacity: 0.7;
+    transform: scale(1.15);
+  }
+}
+
+/* ── 동작 줄이기: 모든 결별 모션을 멈추고 최종(정지) 모습만 ── */
+@media (prefers-reduced-motion: reduce) {
+  .miku-mood .mascot-sway,
+  .miku-mood .mascot-bob,
+  .miku-mood .mascot-head,
+  .miku-mood .mascot-tail-l,
+  .miku-mood .mascot-tail-r,
+  .miku-mood .mascot-arm-l,
+  .miku-mood .mascot-arm-r,
+  .miku-mood .mascot-skirt,
+  .miku-mood .mascot-legs,
+  .miku-mood .mascot-shadow,
+  .miku-mood .mascot-note,
+  .miku-chest-heart {
+    animation: none;
+  }
+  .miku-chest-glow {
+    animation: none;
+    opacity: 0.5;
+  }
+  /* 하트는 손 위에 살짝 떠 있는 모습으로 멈춘다 */
+  .miku-heart {
+    animation: none;
+    opacity: 0.85;
+    transform: translateY(-16px);
+  }
+  /* 멈춘 상태에선 오른손 하트 둘이 겹쳐 보이므로 하나만 */
+  .miku-heart-3 {
+    opacity: 0;
+  }
+}

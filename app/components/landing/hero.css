@@ -1,0 +1,212 @@
+/* ──────────────────────────────────────────────
+   랜딩 히어로 — 아빠와 딸의 노을 산책
+   - 일러스트 루프는 이 페이지의 유일한 반복 모션: 느리고 잔잔하게
+   - 나머지(문구·버튼)는 한 번만 떠오르는 등장 모션
+   - prefers-reduced-motion이면 모두 정지된 완성 장면
+   ────────────────────────────────────────────── */
+
+/* 움직이는 SVG 조각은 자기 영역(fill-box)을 기준으로 변형된다 */
+.hero-scene .hero-anim {
+  transform-box: fill-box;
+}
+
+/* 해무리 — 7초에 한 번 천천히 숨 쉬기 */
+.hero-sun-glow {
+  transform-origin: 50% 50%;
+  animation: hero-breathe 7s ease-in-out infinite;
+}
+
+/* 걸음: 한 걸음 1.4초, 두 걸음(한 보폭) 2.8초 */
+.hero-walk {
+  animation: hero-bob 1.4s ease-in-out infinite;
+}
+
+.hero-leg {
+  animation: hero-step 2.8s ease-in-out infinite;
+}
+.hero-leg-b {
+  animation-delay: -1.4s;
+}
+
+/* 맞잡은 팔: 앞으로 흔들리면 뒤에서 볼 때 짧아 보인다 (어깨 기준 scaleY) */
+.hero-arm-joined {
+  transform-origin: 50% 0%;
+  animation: hero-swing-joined 2.8s ease-in-out infinite;
+}
+.hero-hands {
+  animation: hero-swing-hands 2.8s ease-in-out infinite;
+}
+
+/* 바깥 팔은 반대 박자로 */
+.hero-arm-free {
+  transform-origin: 50% 0%;
+  animation: hero-swing-free 2.8s ease-in-out infinite;
+}
+
+/* 맞잡은 손에서 하트가 피어올라 해 쪽으로 사라진다 (약 4초마다) */
+.hero-heart {
+  transform-origin: 50% 100%;
+  animation: hero-heart 4.2s linear infinite;
+}
+
+/* 꽃잎 — 오른쪽 위에서 왼쪽 아래로 천천히 */
+.hero-petal {
+  transform-origin: 50% 50%;
+  opacity: 0;
+  animation: hero-petal 16s linear infinite;
+}
+
+@keyframes hero-breathe {
+  0%,
+  100% {
+    transform: scale(0.94);
+    opacity: 0.82;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes hero-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.6px);
+  }
+}
+
+@keyframes hero-step {
+  0%,
+  50%,
+  100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes hero-swing-joined {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.94);
+  }
+}
+
+@keyframes hero-swing-hands {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3.8px);
+  }
+}
+
+@keyframes hero-swing-free {
+  0%,
+  100% {
+    transform: scaleY(0.95);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes hero-heart {
+  0% {
+    transform: translate(0, 34px) scale(0.3);
+    opacity: 0;
+  }
+  18% {
+    transform: translate(0, 16px) scale(0.9);
+    opacity: 1;
+  }
+  42% {
+    transform: translate(1.5px, 0) scale(1);
+    opacity: 1;
+  }
+  72% {
+    transform: translate(-1.5px, -28px) scale(1.06);
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate(1px, -52px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes hero-petal {
+  0% {
+    transform: translate(64px, -112px) rotate(var(--hero-petal-rot, 0deg));
+    opacity: 0;
+  }
+  12%,
+  84% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-64px, 112px) rotate(calc(var(--hero-petal-rot, 0deg) + 300deg));
+    opacity: 0;
+  }
+}
+
+/* ── 페이지 등장 (한 번만) ───────────────── */
+.hero-rise {
+  animation: hero-rise var(--dur-slow, 600ms) var(--ease-soft, ease-out) both;
+  animation-delay: var(--hero-delay, 0ms);
+}
+
+.hero-art-in {
+  animation: hero-art-in 1000ms var(--ease-soft, ease-out) both;
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-art-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── 동작 줄이기: 정지된 완성 장면 ───────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-scene .hero-anim,
+  .hero-rise,
+  .hero-art-in {
+    animation: none;
+  }
+  /* 걷는 중인 한 장면: 바깥쪽 발을 살짝 내디딘 채 멈춤 */
+  .hero-scene .hero-leg-a {
+    transform: translateY(-3px);
+  }
+  /* 맞잡은 손 위에 하트 하나가 떠 있는 장면 */
+  .hero-scene .hero-heart {
+    opacity: 1;
+    transform: none;
+  }
+  .hero-scene .hero-petal {
+    opacity: 0.75;
+    transform: rotate(var(--hero-petal-rot, 0deg));
+  }
+}

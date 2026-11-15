@@ -7,19 +7,17 @@ import {
 } from 'lucide-react';
 import type { Transaction } from '@/types';
 import { formatAmount, seoulDateParts, toKRW } from '@/lib/utils';
+import { CountUp, Reveal } from '@/app/components/motion';
 import type { MonthlyData } from './MonthlyBarChart';
 import type { MerchantSlice } from './MerchantPieChart';
+import './dash-motion.css';
 
 // recharts는 SSR 비호환이므로 dynamic import
 const MonthlyBarChart = dynamic(
   () => import('./MonthlyBarChart').then((m) => ({ default: m.MonthlyBarChart })),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-60 flex items-center justify-center text-sm text-gray-400">
-        차트 로딩 중…
-      </div>
-    ),
+    loading: () => <div className="h-60 rounded-2xl bg-cream-50" aria-hidden="true" />,
   }
 );
 
@@ -27,11 +25,7 @@ const MerchantPieChart = dynamic(
   () => import('./MerchantPieChart').then((m) => ({ default: m.MerchantPieChart })),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-64 flex items-center justify-center text-sm text-gray-400">
-        차트 로딩 중…
-      </div>
-    ),
+    loading: () => <div className="h-[280px] rounded-2xl bg-cream-50" aria-hidden="true" />,
   }
 );
 
@@ -147,9 +141,23 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
         : 0;
     const activeMonths = monthlyData.filter((m) => m.total > 0).length;
     const monthlyAvg = activeMonths > 0 ? yearTotal / activeMonths : 0;
-    const topMerchant = merchantData[0]?.name ?? '-';
+    // '단골집' = 가장 자주 간 곳. 등록금·수업료는 빼고, 횟수가 같으면 더 쓴 곳
+    const visits = new Map<string, { count: number; value: number }>();
+    yearTx
+      .filter((t) => t.card_company !== 'TUITION')
+      .forEach((t) => {
+        const cur = visits.get(t.merchant) ?? { count: 0, value: 0 };
+        visits.set(t.merchant, {
+          count: cur.count + 1,
+          value: cur.value + toKRW(t.amount, t.currency, exchangeRates),
+        });
+      });
+    const topMerchant =
+      Array.from(visits.entries()).sort(
+        ([, a], [, b]) => b.count - a.count || b.value - a.value
+      )[0]?.[0] ?? '-';
     return { yearTotal, currentMonthTotal, monthlyAvg, topMerchant };
-  }, [yearTx, selectedYear, monthlyData, merchantData, exchangeRates, nowSeoul.year, nowSeoul.month]);
+  }, [yearTx, selectedYear, monthlyData, exchangeRates, nowSeoul.year, nowSeoul.month]);
 
   const rateNote = useMemo(() => {
     const entries = Object.entries(exchangeRates);
@@ -159,14 +167,45 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
 
   if (transactions.length === 0) return null;
 
+  const isThisYear = selectedYear === nowSeoul.year;
+
   return (
     <div className="space-y-4">
-      {/* 요약 카드 4개 */}
+      {/* 요약 카드 4개 — 차례로 떠오름, 돈 숫자는 한 번만 차분히 올라감 */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard icon={<Calendar className="h-4 w-4 text-rose-400" />} label="이번 달 지출" value={formatAmount(currentMonthTotal)} />
-        <StatCard icon={<TrendingUp className="h-4 w-4 text-pink-400" />} label={`${selectedYear}년 총 지출`} value={formatAmount(yearTotal)} />
-        <StatCard icon={<CreditCard className="h-4 w-4 text-violet-400" />} label="월 평균 지출" value={formatAmount(monthlyAvg)} />
-        <StatCard icon={<Store className="h-4 w-4 text-amber-400" />} label="최다 가맹점" value={topMerchant} small />
+        <Reveal delay={0}>
+          <StatCard
+            icon={<Calendar className="h-4 w-4 text-rose-400" />}
+            label="이번 달 은별이 생활비"
+            value={<CountUp value={currentMonthTotal} format={formatAmount} />}
+          />
+        </Reveal>
+        <Reveal delay={60}>
+          <StatCard
+            icon={<TrendingUp className="h-4 w-4 text-pink-400" />}
+            label={`${selectedYear}년 생활비`}
+            value={<CountUp value={yearTotal} format={formatAmount} />}
+          />
+        </Reveal>
+        <Reveal delay={120}>
+          <StatCard
+            icon={<CreditCard className="h-4 w-4 text-violet-400" />}
+            label="한 달 평균"
+            value={<CountUp value={monthlyAvg} format={formatAmount} />}
+          />
+        </Reveal>
+        <Reveal delay={180}>
+          <StatCard
+            icon={<Store className="h-4 w-4 text-amber-400" />}
+            label={isThisYear ? '올해 단골집' : `${selectedYear}년 단골집`}
+            value={
+              <span key={topMerchant} className="dash-fade-in block truncate">
+                {topMerchant}
+              </span>
+            }
+            small
+          />
+        </Reveal>
       </div>
       {rateNote && (
         <p className="text-xs text-gray-400 text-right">
@@ -174,14 +213,15 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
         </p>
       )}
 
-      {/* 월별 지출 */}
-      <div className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-5">
+      {/* 달마다 생활비 */}
+      <Reveal className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-gray-800">월별 지출</h3>
+          <h3 className="text-sm font-bold text-gray-800">달마다 생활비</h3>
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setYearIdx((i) => Math.min(i + 1, availableYears.length - 1))}
               disabled={yearIdx >= availableYears.length - 1}
+              aria-label="이전 해"
               className="p-1 rounded-full hover:bg-rose-50 disabled:opacity-30 transition-colors"
             >
               <ChevronLeft className="h-4 w-4 text-rose-400" />
@@ -192,50 +232,61 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
             <button
               onClick={() => setYearIdx((i) => Math.max(i - 1, 0))}
               disabled={yearIdx <= 0}
+              aria-label="다음 해"
               className="p-1 rounded-full hover:bg-rose-50 disabled:opacity-30 transition-colors"
             >
               <ChevronRight className="h-4 w-4 text-rose-400" />
             </button>
           </div>
         </div>
-        <MonthlyBarChart data={monthlyData} year={selectedYear} />
-      </div>
+        {/* 연도를 바꾸면 내용이 살짝 번지듯 바뀐다 */}
+        <div key={selectedYear} className="dash-fade-in">
+          <MonthlyBarChart data={monthlyData} year={selectedYear} />
+        </div>
+      </Reveal>
 
-      {/* 가맹점 분포 + 카드사 분포 */}
+      {/* 생활비가 쓰인 곳(금액 기준) + 카드별 사용 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* 가맹점 분포 */}
-        <div className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-5">
-          <h3 className="text-sm font-bold text-gray-800 mb-1">가맹점 분포</h3>
-          <p className="text-xs text-gray-400 mb-3">{selectedYear}년 · 상위 8개</p>
-          <MerchantPieChart data={merchantData} />
-        </div>
+        {/* 생활비가 쓰인 곳 — 금액 기준 분포, 등록금 포함 */}
+        <Reveal className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-5">
+          <h3 className="text-sm font-bold text-gray-800 mb-1">생활비가 쓰인 곳</h3>
+          <div key={selectedYear} className="dash-fade-in">
+            <p className="text-xs text-gray-400 mb-3">{selectedYear}년 · 상위 8개</p>
+            <MerchantPieChart data={merchantData} />
+          </div>
+        </Reveal>
 
-        {/* 카드사 분포 */}
-        <div className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-5">
-          <h3 className="text-sm font-bold text-gray-800 mb-1">카드사 분포</h3>
-          <p className="text-xs text-gray-400 mb-4">{selectedYear}년</p>
-          {cardData.length === 0 ? (
-            <p className="text-sm text-gray-400 mt-8 text-center">데이터가 없습니다.</p>
-          ) : (
-            <div className="space-y-3 mt-2">
-              {cardData.map((d) => (
-                <div key={d.key}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-700">{CARD_LABEL[d.key]}</span>
-                    <span className="font-medium text-gray-900">{formatAmount(d.amount)}</span>
+        {/* 카드별 사용 */}
+        <Reveal
+          delay={80}
+          className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-5"
+        >
+          <h3 className="text-sm font-bold text-gray-800 mb-1">카드별 사용</h3>
+          <div key={selectedYear} className="dash-fade-in">
+            <p className="text-xs text-gray-400 mb-4">{selectedYear}년</p>
+            {cardData.length === 0 ? (
+              <p className="text-sm text-gray-400 mt-8 text-center">이 해엔 아직 기록이 없어요</p>
+            ) : (
+              <div className="space-y-3 mt-2">
+                {cardData.map((d) => (
+                  <div key={d.key}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-700">{CARD_LABEL[d.key]}</span>
+                      <span className="font-medium text-gray-900">{formatAmount(d.amount)}</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className={`dash-grow-x h-full rounded-full ${CARD_COLOR[d.key]}`}
+                        style={{ width: `${d.pct}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5 text-right">{d.pct.toFixed(1)}%</p>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${CARD_COLOR[d.key]}`}
-                      style={{ width: `${d.pct}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-400 mt-0.5 text-right">{d.pct.toFixed(1)}%</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Reveal>
       </div>
     </div>
   );
@@ -249,14 +300,14 @@ function StatCard({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
   small?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-rose-100 shadow-sm shadow-rose-100/40 px-4 py-3.5">
-      <div className="flex items-center gap-1.5 mb-2">
-        {icon}
-        <span className="text-xs text-gray-500">{label}</span>
+    <div className="h-full bg-white rounded-2xl border border-rose-100 shadow-sm shadow-rose-100/40 px-4 py-3.5">
+      <div className="flex items-start gap-1.5 mb-2">
+        <span className="mt-px flex shrink-0">{icon}</span>
+        <span className="text-xs leading-snug text-gray-500 break-keep">{label}</span>
       </div>
       <p
         className={`font-bold text-gray-900 leading-tight truncate ${

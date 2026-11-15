@@ -1,16 +1,16 @@
 import type { Transaction } from '@/types';
 import { formatAmount, seoulDateParts, toKRW } from '@/lib/utils';
 
-/** 캐릭터가 짓는 표정 = 이번 달 지출에 대한 평가 등급 */
+/** 캐릭터가 짓는 표정 = 이번 달 생활비 흐름에 맞춘 안부의 결 */
 export type SpendingMood = 'empty' | 'great' | 'good' | 'normal' | 'warning' | 'alert';
 
 export interface SpendingReview {
   mood: SpendingMood;
-  /** 말풍선 상단 배지 (이모지 + 한 단어 평가) */
+  /** 말풍선 상단 배지 (이모지 + 짧은 안부) */
   badge: string;
   /** 말풍선 메인 문장 */
   headline: string;
-  /** 몇 초 간격으로 번갈아 보여줄 코멘트 */
+  /** 몇 초 간격으로 번갈아 보여줄 코멘트 (첫 줄은 안부) */
   lines: string[];
   monthLabel: string;
   monthTotal: number;
@@ -33,7 +33,7 @@ function daysInMonth(year: number, month: number): number {
 }
 
 /**
- * 이번 달(KST) 지출을 최근 평균과 비교해 캐릭터가 말할 평가 문구를 만든다.
+ * 이번 달(KST) 생활비를 최근 평균과 비교해 캐릭터가 건넬 안부 문구를 만든다.
  */
 export function buildSpendingReview(
   transactions: Transaction[],
@@ -129,42 +129,68 @@ function pickHeadline(
   const amount = formatAmount(monthTotal);
   const gap = diffPct === null ? null : Math.abs(Math.round(diffPct));
 
+  // 말투 원칙: 친구 같은 반말, 꾸짖거나 줄이라고 시키지 않는다. 숫자는 그대로 보여준다.
   switch (mood) {
     case 'empty':
       return {
-        badge: '🌱 시작 전',
-        headline: `${monthLabel}엔 아직 쓴 게 없어요. 깨끗한 출발이에요!`,
+        badge: '🌱 새로운 한 달',
+        headline: `${monthLabel}엔 아직 결제가 없어. 가볍게, 천천히 시작해 보자!`,
       };
     case 'great':
       return {
-        badge: '🏆 아주 잘했어요',
-        headline: `${monthLabel} 지출 ${amount}. 평소보다 ${gap}%나 아꼈어요!`,
+        badge: '🌷 알뜰했네, 기특해',
+        headline: `${monthLabel} 생활비 ${amount}. 평소보다 ${gap}% 아꼈네, 기특해!`,
       };
     case 'good':
       return {
-        badge: '💚 좋아요',
-        headline: `${monthLabel} 지출 ${amount}. 평균보다 ${gap}% 적게 쓰고 있어요.`,
+        badge: '💚 잘 하고 있어',
+        headline: `${monthLabel} 생활비 ${amount}. 평소보다 ${gap}% 덜 쓰면서 잘 지내고 있네.`,
       };
     case 'normal':
       return {
-        badge: '🙂 무난해요',
+        badge: '☕ 평소 같은 한 달',
         headline:
           gap === null
-            ? `${monthLabel} 지출은 ${amount}예요. 이 페이스 기억해 둘게요!`
-            : `${monthLabel} 지출 ${amount}. 평소랑 비슷한 흐름이에요.`,
+            ? `${monthLabel} 생활비 ${amount}. 이번 달도 잘 지내 보자!`
+            : `${monthLabel} 생활비 ${amount}. 평소랑 비슷하게 잘 지내고 있네.`,
       };
     case 'warning':
       return {
-        badge: '⚠️ 조금 과했어요',
-        headline: `${monthLabel} 지출 ${amount}. 평균보다 ${gap}% 더 썼어요.`,
+        badge: '🫶 조금 바빴나 봐',
+        headline: `${monthLabel} 생활비 ${amount}. 평소보다 ${gap}% 더 들었네. 이것저것 필요한 게 많았나 봐.`,
       };
     case 'alert':
     default:
       return {
-        badge: '🚨 지출 경보',
-        headline: `${monthLabel} 지출 ${amount}! 평균보다 ${gap}%나 많아요.`,
+        badge: '🧡 무슨 일 있었어?',
+        headline: `${monthLabel} 생활비 ${amount}. 평소보다 좀 더 썼네 — 무슨 일 있었어? 필요한 거 있으면 아빠한테 말해.`,
       };
   }
+}
+
+/** 등급별 안부 한마디 (아빠 말 전달은 등급당 최대 한 줄) */
+const CARE_LINE: Record<Exclude<SpendingMood, 'empty'>, string> = {
+  great: '아빠가 기특하대! 그래도 먹고 싶은 건 참지 말래 🌷',
+  good: '아빠가 요즘 잘 지내는 것 같아서 마음 놓인대 💚',
+  normal: '오늘 하루도 수고했어. 따뜻한 거 한 잔 마시면서 쉬어 ☕',
+  warning: '밥은 잘 챙겨 먹고 있지? 무리하지 마 🫶',
+  alert: '큰일 있었던 거면 혼자 끙끙대지 말고 꼭 얘기해 줘. 미쿠도 아빠도 네 편이야 🧡',
+};
+
+/** 받침 유무에 맞춰 '이었어' / '였어'를 고른다 (예: 쿠팡이었어, 스타벅스였어) */
+function wasEnding(word: string): string {
+  const chars = Array.from(word.trim());
+  for (let i = chars.length - 1; i >= 0; i -= 1) {
+    const ch = chars[i];
+    const code = ch.charCodeAt(0);
+    if (code >= 0xac00 && code <= 0xd7a3) {
+      return (code - 0xac00) % 28 === 0 ? '였어' : '이었어';
+    }
+    // 숫자는 읽는 소리 기준 (0 영, 1 일, 3 삼, 6 육, 7 칠, 8 팔 → 받침 있음)
+    if (/[0-9]/.test(ch)) return '013678'.includes(ch) ? '이었어' : '였어';
+    if (/[A-Za-z]/.test(ch)) return '였어';
+  }
+  return '였어';
 }
 
 function buildLines(ctx: {
@@ -183,51 +209,39 @@ function buildLines(ctx: {
   const lines: string[] = [];
 
   if (ctx.mood === 'empty') {
-    lines.push('결제 알림을 붙여넣으면 바로 정리해 줄게요.');
+    lines.push('아빠가 이번 달도 응원한대. 하루하루 즐겁게 보내 🌱');
+    lines.push('결제 알림이 들어오면 미쿠가 바로 정리해 둘게.');
     if (ctx.baseline !== null) {
-      lines.push(`참고로 최근 월 평균은 ${formatAmount(Math.round(ctx.baseline))}였어요.`);
+      lines.push(
+        `참고로 요즘 한 달 생활비는 평균 ${formatAmount(Math.round(ctx.baseline))} 정도였어.`
+      );
     }
-    lines.push('이번 달도 같이 잘 지켜봐요! 💪');
     return lines;
   }
 
+  // 안부가 먼저, 숫자 이야기는 그 다음
+  lines.push(CARE_LINE[ctx.mood]);
+
   lines.push(
-    `${ctx.dayOfMonth}일까지 ${ctx.txCount}건 결제, 하루 평균 ${formatAmount(ctx.dailyAvg)}예요.`
+    `${ctx.dayOfMonth}일까지 ${ctx.txCount}건 결제했고, 하루 평균 ${formatAmount(ctx.dailyAvg)} 정도 썼어.`
   );
 
   if (ctx.daysLeft > 0) {
     lines.push(
-      `이 속도라면 월말엔 ${formatAmount(ctx.projected)} 정도가 될 것 같아요.`
+      `지금처럼 지내면 월말엔 ${formatAmount(ctx.projected)} 정도 될 것 같아.`
     );
   }
 
   if (ctx.topMerchant) {
     lines.push(
-      `이번 달 1등 가맹점은 ${ctx.topMerchant.name} (${formatAmount(ctx.topMerchant.amount)})!`
+      `이번 달 단골집은 ${ctx.topMerchant.name}${wasEnding(ctx.topMerchant.name)} (${formatAmount(ctx.topMerchant.amount)})`
     );
   }
 
   if (ctx.baseline !== null) {
-    lines.push(`최근 월 평균은 ${formatAmount(Math.round(ctx.baseline))}였어요.`);
-  }
-
-  switch (ctx.mood) {
-    case 'great':
-      lines.push('이번 달은 정말 알뜰했어요. 이대로만 가요! 🎉');
-      break;
-    case 'good':
-      lines.push('꾸준히 잘 관리하고 있어요. 계속 이 느낌으로! 👍');
-      break;
-    case 'normal':
-      lines.push('큰 흔들림 없이 잘 가고 있어요. 남은 날도 화이팅!');
-      break;
-    case 'warning':
-      lines.push('남은 날은 조금만 아껴볼까요? 배달·카페부터 점검해요.');
-      break;
-    case 'alert':
-    default:
-      lines.push('큰 지출이 있었나 봐요. 내역을 한 번 확인해 봐요!');
-      break;
+    lines.push(
+      `최근 몇 달은 한 달에 평균 ${formatAmount(Math.round(ctx.baseline))} 정도 썼어.`
+    );
   }
 
   return lines;

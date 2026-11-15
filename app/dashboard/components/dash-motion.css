@@ -1,0 +1,341 @@
+/* ──────────────────────────────────────────────
+   대시보드 모션 (prefix: dash-)
+   - 돈 숫자: 절제 (CountUp만)
+   - 감정 요소: 넉넉하고 부드럽게, 한 번만
+   - 무한 루프는 새싹(빈 화면)과 로딩 스켈레톤뿐 — 둘 다 미쿠와 한 화면에 뜨지 않는다
+   - 모든 애니메이션은 prefers-reduced-motion에서 정지
+   ────────────────────────────────────────────── */
+
+/* ① 월·연도 전환 시 내용이 살짝 번지듯 바뀜 (key로 다시 마운트) */
+.dash-fade-in {
+  animation: dash-fade-in var(--dur-base) var(--ease-soft) both;
+}
+@keyframes dash-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ② 내역 삭제 — 행이 높이·투명도와 함께 부드럽게 접힘 */
+.dash-row {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows var(--dur-base) var(--ease-soft),
+    opacity var(--dur-base) var(--ease-soft);
+}
+.dash-row-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.dash-row.dash-row-out {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ③ 카드별 사용 막대 — 카드가 화면에 들어오면(.reveal-in) 왼쪽부터 차오름 */
+.dash-grow-x {
+  transform-origin: left center;
+}
+.reveal .dash-grow-x {
+  transform: scaleX(0);
+}
+.reveal.reveal-in .dash-grow-x {
+  animation: dash-grow-x 700ms var(--ease-soft) 180ms both;
+}
+@keyframes dash-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ④ 탭 밑줄 — 탭 사이를 미끄러지듯 이동 (첫 측정 때는 transition 없음) */
+.dash-nav-indicator {
+  transition: none;
+}
+.dash-nav-indicator[data-animate='true'] {
+  transition:
+    left var(--dur-base) var(--ease-soft),
+    width var(--dur-base) var(--ease-soft);
+}
+
+/* ⑤ 빈 화면 새싹 — 바람에 살랑 (이 화면의 유일한 루프) */
+.dash-sprout-sway {
+  transform-box: view-box;
+  transform-origin: 32px 50px;
+  animation: dash-sprout-sway 3.6s ease-in-out infinite;
+}
+@keyframes dash-sprout-sway {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+/* ⑥ 저장 피드백 — 돼지저금통에 동전이 쏙, 하트가 퐁 (1.2s, 한 번) */
+.dash-pop {
+  animation: dash-pop-wrap 1200ms var(--ease-soft) both;
+}
+@keyframes dash-pop-wrap {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  82% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.dash-piggy-body,
+.dash-piggy-coin,
+.dash-pop-heart,
+.dash-pop-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.dash-piggy-coin {
+  animation: dash-piggy-coin 1200ms cubic-bezier(0.55, 0, 0.75, 0.4) both;
+}
+@keyframes dash-piggy-coin {
+  0% {
+    opacity: 0;
+    transform: translateY(-22px);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(-22px);
+  }
+  42% {
+    opacity: 1;
+    transform: translateY(6px);
+  }
+  48%,
+  100% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.dash-piggy-body {
+  transform-origin: 50% 100%;
+  animation: dash-piggy-body 1200ms var(--ease-soft) both;
+}
+@keyframes dash-piggy-body {
+  0%,
+  40% {
+    transform: scale(1, 1);
+  }
+  48% {
+    transform: scale(1.07, 0.92);
+  }
+  58% {
+    transform: scale(0.97, 1.04);
+  }
+  68%,
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+.dash-pop-heart {
+  animation: dash-pop-heart 1200ms var(--ease-soft) both;
+  animation-delay: var(--dash-heart-delay, 0ms);
+}
+@keyframes dash-pop-heart {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.2);
+  }
+  22% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.18);
+  }
+  36% {
+    transform: translateY(-6px) scale(0.96);
+  }
+  48% {
+    transform: translateY(-7px) scale(1);
+  }
+  76% {
+    opacity: 1;
+    transform: translateY(-11px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.92);
+  }
+}
+/* 돼지저금통에서는 동전이 들어간 뒤에 하트가 뜬다 */
+.dash-piggy .dash-pop-heart {
+  animation-name: dash-piggy-heart;
+}
+@keyframes dash-piggy-heart {
+  0%,
+  46% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.2);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.18);
+  }
+  70% {
+    transform: translateY(-6px) scale(0.98);
+  }
+  86% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.95);
+  }
+}
+
+.dash-pop-spark {
+  opacity: 0;
+  animation: dash-pop-spark 1200ms var(--ease-soft) both;
+}
+@keyframes dash-pop-spark {
+  0%,
+  14% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
+  }
+  30% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: translate(var(--dash-spark-x, 0), var(--dash-spark-y, -8px)) scale(1);
+  }
+}
+
+/* ⑦ 로딩 스켈레톤 — 크림 바탕 위로 로즈빛이 심장박동처럼 두 번 번짐 */
+.dash-skel {
+  position: relative;
+  overflow: hidden;
+  background-color: #fdf4e7; /* cream-100 */
+}
+.dash-skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 228, 230, 0) 0%,
+    rgba(255, 228, 230, 0.95) 38%,
+    rgba(252, 231, 243, 0.95) 62%,
+    rgba(252, 231, 243, 0) 100%
+  );
+  opacity: 0;
+  animation: dash-heartbeat-glow 1.8s ease-in-out infinite;
+  animation-delay: var(--dash-skel-delay, 0ms);
+}
+@keyframes dash-heartbeat-glow {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.85;
+  }
+  24% {
+    opacity: 0.2;
+  }
+  36% {
+    opacity: 0.7;
+  }
+  62% {
+    opacity: 0;
+  }
+}
+
+.dash-skel-heart {
+  transform-origin: center;
+  animation: dash-heartbeat 1.8s ease-in-out infinite;
+}
+@keyframes dash-heartbeat {
+  0%,
+  62%,
+  100% {
+    transform: scale(1);
+  }
+  12% {
+    transform: scale(1.14);
+  }
+  24% {
+    transform: scale(1);
+  }
+  36% {
+    transform: scale(1.09);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-fade-in,
+  .dash-sprout-sway,
+  .dash-skel-heart {
+    animation: none;
+  }
+
+  .dash-row,
+  .dash-nav-indicator,
+  .dash-nav-indicator[data-animate='true'] {
+    transition: none;
+  }
+
+  .reveal .dash-grow-x,
+  .reveal.reveal-in .dash-grow-x {
+    transform: none;
+    animation: none;
+  }
+
+  /* 저장 피드백은 움직임 없이 '성공한 모습'만 남긴다 */
+  .dash-pop,
+  .dash-piggy-body {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .dash-piggy-coin,
+  .dash-pop-spark {
+    animation: none;
+    opacity: 0;
+  }
+  .dash-pop-heart,
+  .dash-piggy .dash-pop-heart {
+    animation: none;
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+
+  .dash-skel::after {
+    animation: none;
+    opacity: 0.35;
+  }
+}
