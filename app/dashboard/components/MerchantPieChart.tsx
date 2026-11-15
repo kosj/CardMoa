@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import {
   PieChart,
   Pie,
@@ -9,6 +10,8 @@ import {
   Legend,
 } from 'recharts';
 import { formatAmount } from '@/lib/utils';
+import { useReducedMotion } from '@/app/components/motion';
+import { useDashInViewOnce } from './DashInView';
 
 export interface MerchantSlice {
   name: string;
@@ -64,39 +67,50 @@ function CustomLegend({ payload }: { payload?: { value: string; color: string }[
   );
 }
 
+const CHART_HEIGHT = 280;
+
 export function MerchantPieChart({ data }: Props) {
-  if (data.length === 0) {
-    return (
-      <div className="h-64 flex items-center justify-center text-sm text-gray-400">
-        데이터가 없습니다.
-      </div>
-    );
-  }
+  const reduced = useReducedMotion();
+  // 조각이 '보일 때' 차례로 그려지도록, 화면에 들어온 뒤에 차트를 마운트한다
+  const boxRef = useRef<HTMLDivElement>(null);
+  const inView = useDashInViewOnce(boxRef, 0.25);
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="45%"
-          innerRadius="45%"
-          outerRadius="68%"
-          paddingAngle={2}
-          dataKey="value"
-          nameKey="name"
-        >
-          {data.map((_, index) => (
-            <Cell
-              key={`cell-${index}`}
-              fill={COLORS[index % COLORS.length]}
-              stroke="none"
-            />
-          ))}
-        </Pie>
-        <Tooltip content={<CustomTooltip />} />
-        <Legend content={<CustomLegend />} />
-      </PieChart>
-    </ResponsiveContainer>
+    <div ref={boxRef} style={{ height: CHART_HEIGHT }}>
+      {data.length === 0 ? (
+        <div className="h-full flex items-center justify-center text-sm text-gray-400">
+          이 해엔 아직 기록이 없어요
+        </div>
+      ) : inView && (
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="45%"
+              innerRadius="45%"
+              outerRadius="68%"
+              paddingAngle={2}
+              dataKey="value"
+              nameKey="name"
+              isAnimationActive={!reduced}
+              animationBegin={120}
+              animationDuration={900}
+              animationEasing="ease-out"
+            >
+              {data.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                  stroke="none"
+                />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+            <Legend content={<CustomLegend />} />
+          </PieChart>
+        </ResponsiveContainer>
+      )}
+    </div>
   );
 }
