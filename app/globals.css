@@ -70,8 +70,7 @@
 .mascot-legs,
 .mascot-eyes,
 .mascot-shadow,
-.mascot-note,
-.mascot-sweat {
+.mascot-note {
   transform-box: view-box;
 }
 
@@ -142,10 +141,6 @@
   animation-delay: 2.2s;
 }
 
-.mascot-sweat {
-  transform-origin: 194px 90px;
-  animation: mascot-sweat 1.8s ease-in-out infinite;
-}
 
 @keyframes mascot-sway {
   0%,
@@ -283,17 +278,6 @@
   }
 }
 
-@keyframes mascot-sweat {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.9;
-  }
-  50% {
-    transform: translateY(4px);
-    opacity: 0.55;
-  }
-}
 
 .mascot-line-in {
   animation: mascot-line-in 0.45s ease-out;
@@ -322,7 +306,6 @@
   .mascot-legs,
   .mascot-eyes,
   .mascot-shadow,
-  .mascot-sweat,
   .mascot-line-in {
     animation: none;
   }

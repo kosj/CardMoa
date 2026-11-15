@@ -245,11 +245,11 @@ export function StatsDashboard({ transactions, exchangeRates }: Props) {
         </div>
       </Reveal>
 
-      {/* 자주 간 곳 + 카드별 사용 */}
+      {/* 생활비가 쓰인 곳(금액 기준) + 카드별 사용 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* 자주 간 곳 */}
+        {/* 생활비가 쓰인 곳 — 금액 기준 분포, 등록금 포함 */}
         <Reveal className="bg-white rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/40 p-5">
-          <h3 className="text-sm font-bold text-gray-800 mb-1">자주 간 곳</h3>
+          <h3 className="text-sm font-bold text-gray-800 mb-1">생활비가 쓰인 곳</h3>
           <div key={selectedYear} className="dash-fade-in">
             <p className="text-xs text-gray-400 mb-3">{selectedYear}년 · 상위 8개</p>
             <MerchantPieChart data={merchantData} />
@@ -307,7 +307,7 @@ function StatCard({
     <div className="h-full bg-white rounded-2xl border border-rose-100 shadow-sm shadow-rose-100/40 px-4 py-3.5">
       <div className="flex items-start gap-1.5 mb-2">
         <span className="mt-px flex shrink-0">{icon}</span>
-        <span className="text-xs leading-snug text-gray-500">{label}</span>
+        <span className="text-xs leading-snug text-gray-500 break-keep">{label}</span>
       </div>
       <p
         className={`font-bold text-gray-900 leading-tight truncate ${

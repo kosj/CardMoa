@@ -113,8 +113,8 @@ export default function HomePage() {
               <Feature
                 icon={<ChartPie className="h-5 w-5 text-fuchsia-400" />}
                 tint="bg-fuchsia-50"
-                title="자주 간 곳·카드별 사용 그래프"
-                desc="자주 간 곳, 카드별·수업료별 비중과 연간·월간 흐름을 그래프로 보여줄게."
+                title="생활비 흐름 그래프"
+                desc="생활비가 어디에 쓰였는지, 카드별·수업료별 비중과 달마다 흐름을 그래프로 보여줄게."
               />
             </Reveal>
             <Reveal delay={360} className="h-full sm:col-span-2 lg:col-span-2">
