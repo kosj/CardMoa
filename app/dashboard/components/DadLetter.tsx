@@ -1,15 +1,22 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState, useTransition } from 'react';
-import { AlertCircle, ChevronDown, Loader2, PenLine } from 'lucide-react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition } from 'react';
+import { AlertCircle, ChevronDown, Loader2, Paperclip, PenLine } from 'lucide-react';
 import type { Letter } from '@/lib/letters';
+import type { Memory } from '@/lib/memory-types';
 import { useReducedMotion } from '@/app/components/motion';
 import { openLetter, sendLetter } from '../letter-actions';
+import { LetterAttachPhoto } from './LetterAttachPhoto';
 import { LetterEnvelope, formatLetterDate } from './LetterEnvelope';
+import { MemoryLightbox } from './MemoryLightbox';
 import './letter.css';
+
+const NO_MEMORIES: Memory[] = [];
 
 interface Props {
   initialLetters: Letter[];
+  /** '우리 이야기'의 추억 사진 — 쪽지에 붙이고, 붙은 사진을 보여줄 때 쓴다 */
+  memories?: Memory[];
   /** 처음부터 펼쳐 둘 쪽지 id (미리보기·바로가기용, 보통은 비워 둔다) */
   defaultOpenId?: string;
 }
@@ -33,7 +40,7 @@ function firstLine(body: string): string {
   return body.split(/\r?\n/).find((l) => l.trim().length > 0)?.trim() ?? '';
 }
 
-export function DadLetter({ initialLetters, defaultOpenId }: Props) {
+export function DadLetter({ initialLetters, memories = NO_MEMORIES, defaultOpenId }: Props) {
   const uid = useId();
   const reduced = useReducedMotion();
   const draftId = `${uid}-draft`;
@@ -66,6 +73,15 @@ export function DadLetter({ initialLetters, defaultOpenId }: Props) {
   const latest = letters[0] ?? null;
   const current = letters.find((l) => l.id === selectedId) ?? latest;
   const older = letters.slice(1);
+
+  /* ── 쪽지에 붙은 사진 — 사진이 지워졌으면(목록에 없으면) 그냥 사진 없이 ── */
+  const memoryById = useMemo(() => new Map(memories.map((m) => [m.id, m])), [memories]);
+  const photoOf = (letter: Letter): Memory | null =>
+    letter.memory_id ? memoryById.get(letter.memory_id) ?? null : null;
+  const currentPhoto = current ? photoOf(current) : null;
+
+  const [lightboxPhoto, setLightboxPhoto] = useState<Memory | null>(null);
+  const lightboxList = useMemo(() => (lightboxPhoto ? [lightboxPhoto] : []), [lightboxPhoto]);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const swapTimer = useRef<number | null>(null);
@@ -145,6 +161,7 @@ export function DadLetter({ initialLetters, defaultOpenId }: Props) {
   /* ── 쪽지 쓰기 ── */
   const [composerOpen, setComposerOpen] = useState(false);
   const [draft, setDraft] = useState('');
+  const [attachId, setAttachId] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -167,7 +184,7 @@ export function DadLetter({ initialLetters, defaultOpenId }: Props) {
 
     startTransition(async () => {
       try {
-        const res = await sendLetter(body);
+        const res = await sendLetter(body, attachId);
         if (!res.success || !res.letter) {
           setSendError(res.error ?? '쪽지를 보내지 못했습니다.');
           return;
@@ -179,6 +196,7 @@ export function DadLetter({ initialLetters, defaultOpenId }: Props) {
         setArrivingId(letter.id);
         setArriveKey((k) => k + 1);
         setDraft('');
+        setAttachId(null);
         setComposerOpen(false);
         setNotice('쪽지를 보냈어요. 은별이에게 잘 전해질 거예요.');
         window.requestAnimationFrame(scrollToStage);
@@ -248,6 +266,12 @@ export function DadLetter({ initialLetters, defaultOpenId }: Props) {
             disabled={isPending}
             placeholder="예: 은별아, 시험 기간이라 힘들지? 밥은 꼭 챙겨 먹어."
             className="w-full resize-y rounded-xl border border-gray-300 px-3 py-2.5 text-sm leading-relaxed text-gray-900 placeholder-gray-400 focus:border-dusk-400 focus:outline-none focus:ring-1 focus:ring-dusk-400 disabled:opacity-60"
+          />
+          <LetterAttachPhoto
+            memories={memories}
+            selectedId={attachId}
+            onChange={setAttachId}
+            disabled={isPending}
           />
           <div className="mt-2 flex items-center justify-between gap-3">
             <span
@@ -319,6 +343,8 @@ export function DadLetter({ initialLetters, defaultOpenId }: Props) {
               onMotionEnd={() => setArrivingId(null)}
               writeKey={writeKey}
               quickWrite={quickWrite}
+              photo={currentPhoto}
+              onOpenPhoto={() => currentPhoto && setLightboxPhoto(currentPhoto)}
             />
           </div>
 
@@ -347,6 +373,7 @@ export function DadLetter({ initialLetters, defaultOpenId }: Props) {
                 <ul id={archiveId} className="mt-3 grid gap-2 sm:grid-cols-2">
                   {older.map((l, i) => {
                     const selected = l.id === current.id && open;
+                    const hasPhoto = photoOf(l) !== null;
                     return (
                       <li
                         key={l.id}
@@ -370,6 +397,12 @@ export function DadLetter({ initialLetters, defaultOpenId }: Props) {
                               {!l.opened_at && (
                                 <span className="rounded-full bg-dusk-300/30 px-1.5 py-px text-[10px] text-dusk-500">
                                   안 읽음
+                                </span>
+                              )}
+                              {hasPhoto && (
+                                <span className="inline-flex items-center text-gray-400" title="사진이 붙은 쪽지">
+                                  <Paperclip className="h-3 w-3 -rotate-12" aria-hidden="true" />
+                                  <span className="sr-only">사진 1장</span>
                                 </span>
                               )}
                               {selected && (
@@ -406,6 +439,14 @@ export function DadLetter({ initialLetters, defaultOpenId }: Props) {
             </button>
           )}
         </div>
+      )}
+
+      {lightboxPhoto && (
+        <MemoryLightbox
+          memories={lightboxList}
+          onClose={() => setLightboxPhoto(null)}
+          label="쪽지에 붙은 사진 크게 보기"
+        />
       )}
     </section>
   );
