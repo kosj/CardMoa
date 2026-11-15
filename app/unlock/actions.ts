@@ -47,7 +47,8 @@ export async function unlockAction(prev: UnlockState, formData: FormData): Promi
     return { error: '암호가 맞지 않아요', attempt };
   }
 
-  cookies().set(FAMILY_COOKIE, await familyToken(passcode), {
+  const cookieStore = await cookies();
+  cookieStore.set(FAMILY_COOKIE, await familyToken(passcode), {
     ...cookieBase,
     maxAge: FAMILY_COOKIE_MAX_AGE,
   });
@@ -56,7 +57,7 @@ export async function unlockAction(prev: UnlockState, formData: FormData): Promi
 
 /** 이 기기에서 노트 잠그기 → 처음 화면으로 */
 export async function lockAction(): Promise<void> {
-  cookies().set(FAMILY_COOKIE, '', { ...cookieBase, maxAge: 0, expires: new Date(0) });
+  (await cookies()).set(FAMILY_COOKIE, '', { ...cookieBase, maxAge: 0, expires: new Date(0) });
   // 브라우저에 남아 있는 노트 화면(라우터 캐시)도 비운다
   revalidatePath('/', 'layout');
   redirect('/');
