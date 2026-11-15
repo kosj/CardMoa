@@ -1,0 +1,406 @@
+/* ──────────────────────────────────────────────
+   아빠가 보낸 쪽지 — 봉투 · 편지지 · 손글씨
+   원칙: 감정 요소라 모션은 넉넉하고 부드럽게.
+   단, 전부 1회성이거나 상호작용으로만 움직인다. (무한 반복 없음)
+   ────────────────────────────────────────────── */
+
+/* 카드: 배경 번짐·날아오는 봉투를 잘라내되, 스크롤 컨테이너가 되지 않도록 clip
+   (hidden이면 focus·scrollIntoView 때 카드 안쪽이 옆으로 밀릴 수 있다) */
+section.letter-root {
+  overflow: clip;
+}
+
+/* 무대: 카드 폭을 기준으로 봉투 크기를 정한다 (cqw) */
+.letter-stage {
+  container-type: inline-size;
+  width: 100%;
+  scroll-margin-top: 140px;
+}
+
+.letter-rise {
+  /* 봉투 크기 — 좁은 화면에선 카드 폭에 맞추고, 넓은 화면에선 400px */
+  --env-w: min(100cqw, 400px);
+  --env-h: calc(var(--env-w) * 0.65);
+  /* 펼쳤을 때 봉투 위로 올라오는 편지지 높이 (열린 덮개보다는 높게) */
+  --rise: max(
+    calc(var(--paper-h, 0px) - var(--env-h) * 0.9),
+    calc(var(--env-h) * 0.62 + 8px)
+  );
+  /* 닫힐 때: 편지지가 들어가고 덮개가 반쯤 내려온 뒤에 봉투가 제자리로 */
+  padding-top: 0;
+  transition: padding-top 600ms var(--ease-soft) 520ms;
+}
+/* 열릴 때: 봉투가 먼저 내려앉아 자리를 만들고, 그 사이 덮개가 열린다 */
+.letter-stage.is-open .letter-rise {
+  padding-top: var(--rise);
+  transition: padding-top 700ms var(--ease-soft) 0ms;
+}
+
+/* 마우스를 올리거나 키보드로 포커스하면 봉투가 살짝 들린다 (닫혀 있을 때만) */
+.letter-lift {
+  position: relative;
+  width: var(--env-w);
+  margin: 0 auto;
+  transition: transform var(--dur-base) var(--ease-soft);
+}
+.letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:hover),
+.letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:focus-visible) {
+  transform: translateY(-6px) rotate(-0.8deg);
+}
+
+/* 1회성 모션(들썩임·날아오기)을 담는 층.
+   편지지·봉투 앞뒤·덮개가 이 안에서 z-index로 겹친다. */
+.letter-anim {
+  position: relative;
+  height: var(--env-h);
+  transform-origin: 50% 100%;
+}
+
+/* ── 봉투 ── */
+
+.letter-env-btn {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.letter-env-btn:focus {
+  outline: none;
+}
+.letter-env-btn:focus-visible {
+  outline: 2px solid #f39a68;
+  outline-offset: 4px;
+}
+
+.letter-env-back {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #eccb9f 0%, #f5dfbf 70%, #f8e6cc 100%);
+  box-shadow:
+    0 18px 30px -18px rgba(176, 98, 48, 0.5),
+    0 2px 5px rgba(176, 110, 60, 0.1);
+  transition: box-shadow var(--dur-base) var(--ease-soft);
+}
+.letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:hover) .letter-env-back,
+.letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:focus-visible) .letter-env-back {
+  box-shadow:
+    0 26px 36px -20px rgba(176, 98, 48, 0.55),
+    0 3px 8px rgba(176, 110, 60, 0.12);
+}
+
+.letter-env-front {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  border-radius: 16px;
+}
+.letter-env-front svg,
+.letter-flap svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.letter-env-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.2;
+}
+.letter-env-to {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #b4683f;
+}
+.letter-env-date {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: #c4916b;
+}
+
+/* 덮개 — 위쪽 모서리를 축으로 뒤로 젖혀진다 */
+.letter-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 62%;
+  z-index: 40;
+  transform-origin: 50% 0;
+  transform: perspective(1100px) rotateX(0deg);
+  filter: drop-shadow(0 2px 1.5px rgba(150, 90, 40, 0.14));
+  pointer-events: none;
+  /* 닫힐 때: 편지지가 먼저 들어간 뒤 덮개가 내려온다. 덮개가 수직(90°)을 지날 때 앞으로 */
+  transition:
+    transform 560ms cubic-bezier(0.55, 0, 0.25, 1) 320ms,
+    z-index 0s linear 558ms;
+}
+.letter-stage.is-open .letter-flap {
+  z-index: 15;
+  transform: perspective(1100px) rotateX(180deg);
+  transition:
+    transform 640ms cubic-bezier(0.55, 0, 0.25, 1) 0ms,
+    z-index 0s linear 272ms;
+}
+
+/* 덮개 바깥 면은 수직을 지나는 순간 사라지고 안쪽 면이 보인다 */
+.letter-flap-out {
+  transition: opacity 0s linear 558ms;
+}
+.letter-stage.is-open .letter-flap-out {
+  opacity: 0;
+  transition-delay: 272ms;
+}
+
+.letter-seal {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 460ms var(--ease-bounce) 720ms,
+    opacity 240ms ease 720ms;
+}
+.letter-stage.is-open .letter-seal {
+  opacity: 0;
+  transform: scale(0.5) rotate(-18deg);
+  transition:
+    transform 220ms ease-in 0ms,
+    opacity 200ms ease-in 0ms;
+}
+
+/* ── 편지지 ── */
+
+/* 봉투 아래로 삐져나온 부분만 잘라낸다 (위·옆은 자유롭게) */
+.letter-slot {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  clip-path: inset(-4000px -48px 0 -48px);
+  pointer-events: none;
+}
+
+.letter-paper {
+  --lh: 34px;
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: calc(var(--env-h) * 0.1);
+  /* 아래쪽 여백은 봉투 속에 들어가 있는 부분 */
+  padding: 16px clamp(18px, 7%, 30px) calc(var(--env-h) * 0.9 + 6px);
+  border: 1px solid rgba(241, 211, 168, 0.95);
+  border-radius: 12px 12px 6px 6px;
+  background-color: #fffbf5;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0,
+    transparent calc(var(--lh) - 1px),
+    rgba(232, 196, 150, 0.5) calc(var(--lh) - 1px),
+    rgba(232, 196, 150, 0.5) var(--lh)
+  );
+  background-position: 0 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 14px 30px -20px rgba(160, 90, 40, 0.55);
+  color: #4a3a32;
+  pointer-events: auto;
+  visibility: hidden;
+  transform: translateY(calc(var(--rise) + 16px));
+  transition:
+    transform 520ms var(--ease-soft) 0ms,
+    visibility 0s linear 520ms;
+}
+/* 덮개가 열리고 나면 편지지가 봉투에서 스르륵 올라온다 */
+.letter-stage.is-open .letter-paper {
+  visibility: visible;
+  transform: translateY(0);
+  transition:
+    transform 900ms var(--ease-soft) 380ms,
+    visibility 0s linear 0s;
+}
+
+.letter-paper-head {
+  display: flex;
+  height: var(--lh);
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: #b98b6a;
+}
+
+.letter-body {
+  font-size: 24px;
+  line-height: var(--lh);
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.letter-line {
+  min-height: var(--lh);
+  /* 글씨가 줄 위에 얹히도록 살짝 내린다 */
+  position: relative;
+  top: 7px;
+}
+
+/* 단어 하나하나 왼쪽 → 오른쪽으로 써 내려간다 */
+.letter-word {
+  display: inline-block;
+  max-width: 100%;
+}
+.letter-is-writing .letter-word {
+  animation: letter-write var(--w, 300ms) cubic-bezier(0.45, 0.05, 0.55, 0.95) var(--d, 0ms)
+    backwards;
+}
+.letter-is-writing .letter-paper-head {
+  animation: letter-fade 600ms var(--ease-soft) var(--hd, 0ms) backwards;
+}
+
+.letter-sign {
+  display: flex;
+  height: var(--lh);
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  position: relative;
+  top: 7px;
+  font-size: 26px;
+  color: #6b4a3a;
+}
+.letter-sign-ink {
+  display: inline-block;
+}
+.letter-sign-heart {
+  width: 16px;
+  height: 16px;
+  margin-top: -4px;
+}
+.letter-is-writing .letter-sign-ink {
+  animation: letter-write 900ms cubic-bezier(0.45, 0.05, 0.55, 0.95) var(--sd, 0ms) backwards;
+}
+.letter-is-writing .letter-sign-heart {
+  animation: letter-pop 560ms var(--ease-bounce) calc(var(--sd, 0ms) + 860ms) backwards;
+}
+
+@keyframes letter-write {
+  from {
+    clip-path: inset(-30% 100% -30% 0);
+  }
+  to {
+    clip-path: inset(-30% -12% -30% -12%);
+  }
+}
+
+@keyframes letter-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes letter-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── 1회성 모션 ── */
+
+/* 안 읽은 쪽지: 처음 보일 때 한 번 '똑똑' */
+.letter-nudge {
+  animation: letter-nudge 1100ms var(--ease-soft) 250ms both;
+}
+@keyframes letter-nudge {
+  0% {
+    transform: none;
+  }
+  18% {
+    transform: translateY(-7px) rotate(-2.4deg);
+  }
+  36% {
+    transform: translateY(-3px) rotate(2deg);
+  }
+  54% {
+    transform: translateY(-4px) rotate(-1.2deg);
+  }
+  74% {
+    transform: translateY(-1px) rotate(0.5deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* 새 쪽지 도착: 오른쪽 위에서 날아와 살포시 내려앉는다 */
+.letter-arrive {
+  animation: letter-arrive 950ms var(--ease-soft) both;
+}
+@keyframes letter-arrive {
+  0% {
+    opacity: 0;
+    transform: translate(38%, -55%) rotate(14deg) scale(0.72);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(-1.5%, 2%) rotate(-3deg) scale(1.02);
+  }
+  78% {
+    transform: translate(0.5%, -1%) rotate(1.2deg) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 지난 쪽지·쪽지 쓰기 펼침 */
+.letter-drop-in {
+  animation: letter-drop-in 420ms var(--ease-soft) var(--i, 0ms) backwards;
+}
+@keyframes letter-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── 동작 줄이기: 즉시 열고 닫고, 글씨는 처음부터 다 보인다 ── */
+@media (prefers-reduced-motion: reduce) {
+  .letter-root,
+  .letter-root *,
+  .letter-root *::before,
+  .letter-root *::after {
+    animation: none !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+  .letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:hover),
+  .letter-stage:not(.is-open) .letter-lift:has(.letter-env-btn:focus-visible) {
+    transform: none;
+  }
+}
