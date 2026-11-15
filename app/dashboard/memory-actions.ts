@@ -1,5 +1,6 @@
 'use server';
 
+import { assertFamilyAccess } from '@/lib/family-gate';
 import { randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { getAppUserId } from '@/lib/app-user';
@@ -113,6 +114,7 @@ function readDimension(value: FormDataEntryValue | null): number | null {
  * 필드: full, thumb (WebP Blob), taken_at (ISO), caption, chapter, width, height
  */
 export async function uploadMemory(formData: FormData): Promise<MemoryActionResult> {
+  await assertFamilyAccess();
   if (!(formData instanceof FormData)) return { success: false, error: BAD_REQUEST };
 
   const full = await readWebp(formData.get('full'), MEMORY_FULL_MAX_BYTES, '사진');
@@ -171,6 +173,7 @@ export async function updateMemory(
   id: string,
   input: { caption: string; chapter: string }
 ): Promise<MemoryActionResult> {
+  await assertFamilyAccess();
   if (typeof id !== 'string' || !UUID_REGEX.test(id) || typeof input !== 'object' || !input) {
     return { success: false, error: BAD_REQUEST };
   }
@@ -198,6 +201,7 @@ export async function updateMemory(
 
 /** 사진을 보관함과 목록에서 지운다. (되돌릴 수 없음) */
 export async function deleteMemory(id: string): Promise<MemoryActionResult> {
+  await assertFamilyAccess();
   if (typeof id !== 'string' || !UUID_REGEX.test(id)) {
     return { success: false, error: BAD_REQUEST };
   }

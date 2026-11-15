@@ -1,5 +1,6 @@
 'use server';
 
+import { assertFamilyAccess } from '@/lib/family-gate';
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAppUserId } from '@/lib/app-user';
@@ -31,6 +32,7 @@ const fail = (error: string): ParseActionResult => ({
 export async function parseAndSavePaymentText(
   text: string
 ): Promise<ParseActionResult> {
+  await assertFamilyAccess();
   // ① 고정 계정 확인
   const userId = await getAppUserId();
   if (!userId) {
@@ -99,6 +101,7 @@ export async function addTuition(input: {
   date: string; // YYYY-MM-DD
   note?: string;
 }): Promise<TuitionActionResult> {
+  await assertFamilyAccess();
   const userId = await getAppUserId();
   if (!userId) {
     return { success: false, error: '사용자를 찾을 수 없습니다.' };
@@ -150,6 +153,7 @@ export interface SettingActionResult {
 export async function updateIncludeDomestic(
   value: boolean
 ): Promise<SettingActionResult> {
+  await assertFamilyAccess();
   const userId = await getAppUserId();
   if (!userId) {
     return { success: false, error: '사용자를 찾을 수 없습니다.' };
@@ -174,6 +178,7 @@ const UUID_REGEX =
 export async function deleteTransaction(
   id: string
 ): Promise<SettingActionResult> {
+  await assertFamilyAccess();
   const userId = await getAppUserId();
   if (!userId) {
     return { success: false, error: '사용자를 찾을 수 없습니다.' };
@@ -219,6 +224,7 @@ export async function updateAbroadInfo(input: {
   since: string;
   nextVisit: string;
 }): Promise<SettingActionResult> {
+  await assertFamilyAccess();
   const userId = await getAppUserId();
   if (!userId) {
     return { success: false, error: '사용자를 찾을 수 없습니다.' };

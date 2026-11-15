@@ -123,3 +123,14 @@ export async function hasFamilyAccess(): Promise<boolean> {
   const { cookies } = await import('next/headers');
   return isValidFamilyCookie(cookies().get(FAMILY_COOKIE)?.value);
 }
+
+/**
+ * 서버 액션 첫 줄에서 호출한다. 미들웨어가 1차로 막지만,
+ * 미들웨어를 건너뛰는 취약점(예: CVE-2025-29927)이 있어도 데이터가 바뀌지 않도록 한 번 더 막는다.
+ * 정상 사용자는 미들웨어에서 이미 /unlock으로 안내되므로 여기까지 오지 않는다.
+ */
+export async function assertFamilyAccess(): Promise<void> {
+  if (!(await hasFamilyAccess())) {
+    throw new Error('잠겨 있어요. 가족 암호로 다시 열어 주세요.');
+  }
+}
