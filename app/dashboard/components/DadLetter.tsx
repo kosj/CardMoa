@@ -212,7 +212,7 @@ export function DadLetter({ initialLetters, defaultOpenId }: Props) {
       <div className="relative flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-bold text-gray-800">아빠가 보낸 쪽지 💌</h3>
-          <p className="mt-0.5 text-xs text-gray-500">가계부 사이사이, 아빠가 남겨 둔 마음</p>
+          <p className="mt-0.5 text-xs text-gray-500">바다 건너로 부치는 아빠의 마음</p>
         </div>
         {letters.length > 0 && !composerOpen && (
           <button

@@ -133,6 +133,36 @@ section.letter-root {
   font-variant-numeric: tabular-nums;
   color: #c4916b;
 }
+.letter-env-airmail {
+  margin-top: 2px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #8b9ccb;
+}
+
+/* 바다 건너 부치는 쪽지 — 봉투 가장자리에 항공 우편 줄무늬 */
+.letter-env-front::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 5px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #e8998a 0 9px,
+    #fffaf2 9px 14px,
+    #9fb0d8 14px 23px,
+    #fffaf2 23px 28px
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  pointer-events: none;
+}
 
 /* 덮개 — 위쪽 모서리를 축으로 뒤로 젖혀진다 */
 .letter-flap {

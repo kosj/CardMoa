@@ -378,6 +378,7 @@ export function LetterEnvelope({
                   <span className="letter-env-label">
                     <span className="letter-env-to">To. 은별</span>
                     <span className="letter-env-date">{formatDotDate(letter.created_at)}</span>
+                    <span className="letter-env-airmail">✈ 항공 우편</span>
                   </span>
                 </span>
               </button>
