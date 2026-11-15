@@ -1,17 +1,26 @@
 'use client';
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { MessageCircleHeart } from 'lucide-react';
+import { MessageCircleHeart, X } from 'lucide-react';
 import type { Transaction } from '@/types';
+import type { Memory } from '@/lib/memory-types';
 import { buildSpendingReview, type SpendingMood } from '@/lib/spending-review';
 import { formatAmount } from '@/lib/utils';
 import { CountUp } from '@/app/components/motion';
-import { DancingMascot } from './DancingMascot';
+import { MikuCard } from './MikuCard';
+import { MikuPhotoSetting } from './MikuPhotoSetting';
+import { useMikuPhoto } from './MikuPhotoState';
 
 interface Props {
   transactions: Transaction[];
   exchangeRates: Record<string, number>;
+  /** 추억 사진 목록 — 미쿠 카드 뒷면 사진 고르기용 */
+  memories?: Memory[];
+  /** 가족이 고른 미쿠 카드 뒷면 사진 id (없으면 null) */
+  mikuMemoryId?: string | null;
 }
+
+const NO_MEMORIES: Memory[] = [];
 
 /**
  * 안부의 결(mood)에 따른 말풍선 배색 — 모든 말풍선은 크림색 편지지(cream-50) 위에
@@ -62,7 +71,13 @@ const THEME: Record<
 
 const LINE_INTERVAL_MS = 5000;
 
-export function SpendingCoach({ transactions, exchangeRates }: Props) {
+export function SpendingCoach({
+  transactions,
+  exchangeRates,
+  memories = NO_MEMORIES,
+  mikuMemoryId = null,
+}: Props) {
+  const miku = useMikuPhoto(memories, mikuMemoryId);
   const review = useMemo(
     () => buildSpendingReview(transactions, exchangeRates),
     [transactions, exchangeRates]
@@ -94,15 +109,42 @@ export function SpendingCoach({ transactions, exchangeRates }: Props) {
     <section
       className={`relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br ${theme.halo} via-white to-cream-50/60 shadow-sm shadow-rose-100/40 p-5`}
     >
-      <div className="flex items-center gap-1.5 mb-3">
-        <MessageCircleHeart className="h-4 w-4 text-dusk-400" />
-        <h3 className="text-sm font-bold text-gray-800">미쿠의 이번 달 안부</h3>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-1.5">
+          <MessageCircleHeart className="h-4 w-4 text-dusk-400" />
+          <h3 className="text-sm font-bold text-gray-800">미쿠의 이번 달 안부</h3>
+        </div>
+        {/* 아빠의 도구: 미쿠 카드 뒷면 사진 고르기 */}
+        <MikuPhotoSetting
+          memories={memories}
+          selectedId={miku.photo?.id ?? null}
+          onChoose={miku.choose}
+          pending={miku.pending}
+        />
       </div>
 
+      {miku.error && (
+        <p
+          role="alert"
+          className="-mt-1 mb-3 flex items-start justify-end gap-1 text-right text-[11px] leading-snug text-orange-700 break-keep"
+        >
+          <span>{miku.error}</span>
+          <button
+            type="button"
+            onClick={miku.clearError}
+            aria-label="알림 닫기"
+            className="shrink-0 rounded-full p-0.5 text-orange-400 hover:bg-orange-50 hover:text-orange-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-dusk-300"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </p>
+      )}
+
       <div className="flex flex-col sm:flex-row-reverse items-center gap-3 sm:gap-6">
-        {/* 춤추는 캐릭터 */}
-        <DancingMascot
+        {/* 춤추는 캐릭터 — 누르면 뒤집히거나(사진이 있을 때) 간지럼을 탄다 */}
+        <MikuCard
           mood={review.mood}
+          photo={miku.photo}
           className="w-36 h-44 sm:w-48 sm:h-60 shrink-0"
         />
 

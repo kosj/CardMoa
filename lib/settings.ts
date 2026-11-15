@@ -128,3 +128,64 @@ export async function setAbroadInfo(
   }
   return true;
 }
+
+/* ──────────────────────────────────────────────
+   미쿠 카드 — 미쿠를 누르면 뒤집혀 보이는 추억 사진 한 장
+   가족이 직접 고른 경우에만 값이 있다. 사진이 지워지면 DB가 연결을 끊는다(ON DELETE SET NULL).
+   ────────────────────────────────────────────── */
+
+export async function getMikuMemoryId(userId: string): Promise<string | null> {
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from('app_settings')
+      .select('miku_memory_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      // 컬럼이 없으면(마이그레이션 009 미실행) 여기로 온다 — 사진 없는 미쿠로 표시
+      console.error('[settings] 미쿠 카드 사진 조회 오류:', error.message);
+      return null;
+    }
+    return data?.miku_memory_id ?? null;
+  } catch (err) {
+    console.error('[settings] 예외:', err);
+    return null;
+  }
+}
+
+/** 고정 계정 기준으로 미쿠 카드 사진 id를 읽는다. (서버 컴포넌트용) */
+export async function getAppMikuMemoryId(): Promise<string | null> {
+  const userId = await getAppUserId();
+  if (!userId) return null;
+  return getMikuMemoryId(userId);
+}
+
+/** 미쿠 카드 사진을 정한다. null이면 '사진 없이' */
+export async function setMikuMemoryId(
+  userId: string,
+  memoryId: string | null
+): Promise<boolean> {
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin.from('app_settings').upsert(
+      {
+        user_id: userId,
+        miku_memory_id: memoryId,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id' }
+    );
+
+    if (error) {
+      // 컬럼이 없으면(마이그레이션 009 미실행) 여기로 온다
+      console.error('[settings] 미쿠 카드 사진 저장 오류:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[settings] 미쿠 카드 사진 저장 예외:', err);
+    return false;
+  }
+}
