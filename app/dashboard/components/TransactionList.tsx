@@ -1,12 +1,16 @@
 'use client';
 
 import { useState, useMemo, useTransition } from 'react';
+import Link from 'next/link';
 import { ReceiptText, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { formatAmount, formatDate, seoulDateParts, toKRW } from '@/lib/utils';
 import { CountUp, Reveal, useReducedMotion } from '@/app/components/motion';
 import { deleteTransaction } from '../actions';
 import type { Transaction, CardCompany } from '@/types';
+import { memoryDateKey, type Memory } from '@/lib/memory-types';
 import { DashSprout } from './DashSprout';
+import { StoryDayChip } from './StoryDayChip';
+import { groupMemoriesByDay } from './StoryFormat';
 import './dash-motion.css';
 
 const CARD_BADGE: Record<CardCompany, string> = {
@@ -39,14 +43,22 @@ type RemovalState = 'out' | 'gone';
 interface Props {
   transactions: Transaction[];
   exchangeRates?: Record<string, number>;
+  /** 우리 이야기 사진 — 같은 날(KST) 내역 옆에 '이 날의 사진'으로 잇는다 */
+  memories?: Memory[];
 }
+
+const NO_MEMORIES: Memory[] = [];
 
 const monthKey = (dateStr: string) => {
   const { year, month } = seoulDateParts(dateStr);
   return `${year}-${String(month).padStart(2, '0')}`;
 };
 
-export function TransactionList({ transactions, exchangeRates = {} }: Props) {
+export function TransactionList({
+  transactions,
+  exchangeRates = {},
+  memories = NO_MEMORIES,
+}: Props) {
   const reduced = useReducedMotion();
 
   // 데이터에 있는 연-월 목록 (최신순, KST 기준)
@@ -138,6 +150,29 @@ export function TransactionList({ transactions, exchangeRates = {} }: Props) {
     [activeRows, exchangeRates]
   );
 
+  // 같은 날 찍은 사진 — 그날의 첫 행(삭제 중인 행 제외)에만 칩을 단다
+  const memoriesByDay = useMemo(() => groupMemoriesByDay(memories), [memories]);
+  const dayChipFor = useMemo(() => {
+    const map = new Map<string, Memory[]>();
+    if (memoriesByDay.size === 0) return map;
+    const seen = new Set<string>();
+    for (const t of activeRows) {
+      const key = memoryDateKey(t.approved_at);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const list = memoriesByDay.get(key);
+      if (list) map.set(t.id, list);
+    }
+    return map;
+  }, [activeRows, memoriesByDay]);
+
+  // 이 달에 찍은 사진 (헤더의 '이 달의 사진' 바로가기)
+  const monthMemories = useMemo(() => {
+    if (!selectedMonth) return NO_MEMORIES;
+    const list = memories.filter((m) => memoryDateKey(m.taken_at).startsWith(`${selectedMonth}-`));
+    return list.sort((a, b) => Date.parse(a.taken_at) - Date.parse(b.taken_at));
+  }, [memories, selectedMonth]);
+
   const label = selectedMonth
     ? `${selectedMonth.split('-')[0]}년 ${Number(selectedMonth.split('-')[1])}월`
     : '-';
@@ -195,15 +230,27 @@ export function TransactionList({ transactions, exchangeRates = {} }: Props) {
           )}
         </div>
 
-        {activeRows.length > 0 && (
-          <p className="mt-2 text-xs text-gray-400">
-            이 달 생활비 합계 (원화 환산){' '}
-            <CountUp
-              value={monthTotal}
-              format={formatAmount}
-              className="font-semibold text-rose-500"
-            />
-          </p>
+        {(activeRows.length > 0 || monthMemories.length > 0) && (
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            {activeRows.length > 0 && (
+              <p className="text-xs text-gray-400">
+                이 달 생활비 합계 (원화 환산){' '}
+                <CountUp
+                  value={monthTotal}
+                  format={formatAmount}
+                  className="font-semibold text-rose-500"
+                />
+              </p>
+            )}
+            {monthMemories.length > 0 && (
+              <Link
+                href={`/dashboard/memories#story-${monthMemories[0].id}`}
+                className="ml-auto rounded-full text-xs font-medium text-dusk-500 underline-offset-4 transition-colors duration-quick hover:text-dusk-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-dusk-300"
+              >
+                이 달의 사진 <span className="tabular-nums">{monthMemories.length}</span>장 →
+              </Link>
+            )}
+          </div>
         )}
       </div>
 
@@ -235,17 +282,23 @@ export function TransactionList({ transactions, exchangeRates = {} }: Props) {
                     <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 hover:bg-rose-50/40 transition-colors">
                       {/* 왼쪽: 카드사 · 날짜 · 가맹점 */}
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                              CARD_BADGE[t.card_company] ?? CARD_BADGE.UNKNOWN
-                            }`}
-                          >
-                            {CARD_LABEL[t.card_company] ?? '기타'}
-                          </span>
-                          <span className="text-xs text-gray-400 truncate">
-                            {formatDate(t.approved_at)}
-                          </span>
+                        {/* 그날 찍은 사진이 있으면 날짜 옆에 칩 — 좁으면 날짜 아래로 내려간다 */}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
+                          <div className="flex min-w-0 max-w-full items-center gap-2">
+                            <span
+                              className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                CARD_BADGE[t.card_company] ?? CARD_BADGE.UNKNOWN
+                              }`}
+                            >
+                              {CARD_LABEL[t.card_company] ?? '기타'}
+                            </span>
+                            <span className="text-xs text-gray-400 truncate">
+                              {formatDate(t.approved_at)}
+                            </span>
+                          </div>
+                          {dayChipFor.has(t.id) && (
+                            <StoryDayChip memories={dayChipFor.get(t.id)!} />
+                          )}
                         </div>
                         <p className="font-medium text-gray-800 truncate">{t.merchant}</p>
                       </div>
